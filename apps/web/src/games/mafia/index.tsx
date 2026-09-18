@@ -6,7 +6,7 @@ import {
 import { randomRoomCode, isValidRoomCode, makeHost, addLocalPlayer } from '@fb/index';
 import { RequireIdentity } from '../../auth/RequireIdentity';
 import {
-  createMafiaRoom, joinMafiaRoom, watchMafiaRoom, watchMySecret,
+  createMafiaRoom, joinMafiaRoom, watchMafiaRoom, watchMySecret, watchLocalSecrets,
   assignRolesAndStartNight, submitNightAction, submitWitchPoison,
   resolveNightPhase, startVote, castVote, watchVotes, resolveVote,
   leaveMafiaRoom, kickPlayer, type MafiaRoom,
@@ -36,6 +36,7 @@ function MafiaApp({ uid, name }: { uid: string; name: string }) {
   const [error, setError] = useState('');
   const [nightTarget, setNightTarget] = useState('');
   const [poisonTarget, setPoisonTarget] = useState('');
+  const [localSecrets, setLocalSecrets] = useState<Record<string, MafiaSecret>>({});
 
   const isHost = room?.hostId === uid;
   const fail = (e: unknown) => setError(e instanceof Error ? e.message : String(e));
@@ -54,6 +55,17 @@ function MafiaApp({ uid, name }: { uid: string; name: string }) {
     if (!code || room?.phase !== 'vote') { setVotes({}); return; }
     return watchVotes(code, setVotes);
   }, [code, room?.phase]);
+
+  // Host-only: local (no-device) players' roles, so the host can act for
+  // whichever ones hold a role that needs a night action.
+  const localAliveUids = Object.values(room?.players ?? {})
+    .filter((p) => p.alive && p.id.startsWith('local-'))
+    .map((p) => p.id);
+  useEffect(() => {
+    if (!code || !isHost || room?.phase !== 'night' || localAliveUids.length === 0) { setLocalSecrets({}); return; }
+    return watchLocalSecrets(code, localAliveUids, setLocalSecrets);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [code, isHost, room?.phase, localAliveUids.join(',')]);
 
   async function host() {
     setError('');
@@ -233,6 +245,41 @@ function MafiaApp({ uid, name }: { uid: string; name: string }) {
             {mySecret?.nightResult && mySecret.nightResult.round === room.settings.round - 1 && (
               <div className="investigate-result">Your last check: {players.find((p) => p.id === mySecret.nightResult!.targetUid)?.name} is {mySecret.nightResult.isEvil ? 'MAFIA' : 'innocent'}.</div>
             )}
+            {isHost && localAliveUids.map((localUid) => {
+              const secret = localSecrets[localUid];
+              const localName = players.find((p) => p.id === localUid)?.name ?? 'Player';
+              if (!secret?.role || secret.role === 'villager') return null;
+              const alreadyActed = secret.nightAction?.round === room.settings.round
+                && (secret.role !== 'witch' || (secret.witchSaveUsed && secret.witchPoisonUsed));
+              if (alreadyActed) return null;
+              return (
+                <div key={localUid} style={{ marginTop: 20, paddingTop: 16, borderTop: '1px solid rgba(255,255,255,.2)' }}>
+                  <p className="waiting-note">{localName} (no phone) is {ROLE_LABEL[secret.role]}.</p>
+                  {(secret.role === 'evil' || secret.role === 'doctor' || secret.role === 'detective') && (
+                    <VoteGrid
+                      players={alivePlayers.filter((p) => p.id !== localUid || secret.role !== 'evil')}
+                      onVote={(id) => submitNightAction(code, localUid, room.settings.round, id).catch(fail)}
+                    />
+                  )}
+                  {secret.role === 'witch' && (
+                    <>
+                      {!secret.witchSaveUsed && (
+                        <>
+                          <p className="waiting-note">Save (once per game):</p>
+                          <VoteGrid players={alivePlayers} onVote={(id) => submitNightAction(code, localUid, room.settings.round, id).catch(fail)} />
+                        </>
+                      )}
+                      {!secret.witchPoisonUsed && (
+                        <>
+                          <p className="waiting-note">Poison (once per game):</p>
+                          <VoteGrid players={alivePlayers} onVote={(id) => submitWitchPoison(code, localUid, room.settings.round, id).catch(fail)} />
+                        </>
+                      )}
+                    </>
+                  )}
+                </div>
+              );
+            })}
             {isHost && <Button ghost onClick={() => resolveNightPhase(code, uid).catch(fail)} style={{ marginTop: 20 }}>Resolve night</Button>}
           </div>
           <ErrorText>{error}</ErrorText>

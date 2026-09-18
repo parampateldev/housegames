@@ -580,6 +580,7 @@ function OnlineGame({ uid, name, onExit }: { uid: string; name: string; onExit: 
     const others = players.filter((p) => p.id !== uid);
     const votes = room.votes || {};
     const count = Object.keys(votes).filter((k) => players.some((p) => p.id === k)).length;
+    const localVotersLeft = isHost ? players.filter((p) => p.id.startsWith('local-') && !votes[p.id]) : [];
     return (
       <main>
         <Header onHome={onExit} />
@@ -589,6 +590,12 @@ function OnlineGame({ uid, name, onExit }: { uid: string; name: string; onExit: 
           {room.settings.voteNote && <ErrorText>{room.settings.voteNote}</ErrorText>}
           <p className="hg-note">Who's been bluffing? You can't vote for yourself.</p>
           <VoteGrid players={others} selectedId={votes[uid]} onVote={(id) => castVote(code, uid, id)} />
+          {localVotersLeft.map((p) => (
+            <div key={p.id} style={{ marginTop: 16 }}>
+              <p className="hg-note">Vote for {p.name} (no phone):</p>
+              <VoteGrid players={players.filter((o) => o.id !== p.id)} onVote={(id) => castVote(code, p.id, id)} />
+            </div>
+          ))}
           <p className="hg-note" style={{ marginTop: 16 }}>{count} of {players.length} votes in</p>
         </Card>
       </main>
@@ -612,6 +619,14 @@ function OnlineGame({ uid, name, onExit }: { uid: string; name: string; onExit: 
                   <button className="mini" onClick={sendGuess}>Guess</button>
                 </div>
               </>
+            ) : isHost && res?.accused?.startsWith('local-') ? (
+              <>
+                <p className="hg-lead" style={{ margin: '10px auto' }}>Guessing for {res?.accusedName} (no phone):</p>
+                <div className="row">
+                  <TextInput value={guessDraft} onChange={(e) => setGuessDraft(e.target.value)} placeholder="Guess the word" onKeyDown={(e) => e.key === 'Enter' && sendGuessFor(res!.accused)} />
+                  <button className="mini" onClick={() => sendGuessFor(res!.accused)}>Guess</button>
+                </div>
+              </>
             ) : <p className="hg-lead" style={{ margin: '10px auto' }}>{res?.accusedName ?? 'The imposter'} gets one guess at the word to steal the win…</p>}
             {isHost && !isAccused && (
               <Button ghost wide style={{ marginTop: 12 }} onClick={() => saveImposterSettings(code, uid, { ...room.settings, guess: { text: '', by: 'host-pass' } })}>They pass</Button>
@@ -625,6 +640,11 @@ function OnlineGame({ uid, name, onExit }: { uid: string; name: string; onExit: 
   function sendGuess() {
     if (!guessDraft.trim()) { toast('Type a guess first'); return; }
     saveImposterSettings(code, uid, { ...room!.settings, guess: { text: guessDraft.trim(), by: uid } }).catch(fail);
+  }
+
+  function sendGuessFor(targetUid: string) {
+    if (!guessDraft.trim()) { toast('Type a guess first'); return; }
+    saveImposterSettings(code, uid, { ...room!.settings, guess: { text: guessDraft.trim(), by: targetUid } }).catch(fail);
   }
 
   // results
