@@ -2,14 +2,14 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams, Link } from 'react-router-dom';
 import {
   Button, Card, Field, TextInput, ErrorText, QR, ChipRow, Segmented, Stepper,
-  RevealCard, HoldToReveal, VoteGrid, useToast,
+  RevealCard, HoldToReveal, VoteGrid, useToast, RoomHeader, PlayerManager,
 } from '@ui/index';
 import { RequireIdentity } from '../../auth/RequireIdentity';
-import { randomRoomCode, isValidRoomCode } from '@fb/index';
+import { randomRoomCode, isValidRoomCode, makeHost, addLocalPlayer } from '@fb/index';
 import {
   createImposterRoom, joinImposterRoom, watchImposterRoom, watchMySecret, saveImposterSettings,
   setReady, setClue, castVote, clearVotes, leaveImposterRoom, getRoomOnce, dealSecrets,
-  getAllImposterSecrets, setRoomPhase, type ImposterRoom,
+  getAllImposterSecrets, setRoomPhase, kickImposterPlayer, type ImposterRoom,
 } from './firebase';
 import {
   CATS, CAT_NAMES, WORD_COUNT, defaultCats, imposterMax, guessMatches, makeHint, pickWord,
@@ -474,12 +474,7 @@ function OnlineGame({ uid, name, onExit }: { uid: string; name: string; onExit: 
         <Header onHome={onExit} />
         <section className="lobby">
           <button className="leavebtn" onClick={leave}>Leave room</button>
-          <div className="panel" style={{ textAlign: 'center' }}>
-            <div className="hg-eyebrow">Room code</div>
-            <p className="bigcode">{code}</p>
-            <div className="share"><span>{share}</span><button className="mini" onClick={() => { navigator.clipboard.writeText(share); toast('Link copied'); }}>Copy link</button></div>
-            {share && <div style={{ marginTop: 16 }}><QR url={share} size={140} /></div>}
-          </div>
+          <RoomHeader gameLabel="Imposter" code={code} shareUrl={share} />
           <div className="panel">
             <h3>Players ({players.length})</h3>
             {players.map((p) => (
@@ -490,6 +485,14 @@ function OnlineGame({ uid, name, onExit }: { uid: string; name: string; onExit: 
                 {p.id === uid && <em>you</em>}
               </div>
             ))}
+            <PlayerManager
+              players={players}
+              hostId={room.hostId}
+              isHost={isHost}
+              onMakeHost={(target) => makeHost('imposter', code, uid, target).catch(fail)}
+              onRemove={(target) => kickImposterPlayer(code, uid, target).catch(fail)}
+              onAddLocal={(n) => addLocalPlayer('imposter', code, uid, n, (id, nm) => ({ id, name: nm, joinedAt: Date.now() })).catch(fail)}
+            />
           </div>
           {isHost ? (
             <div className="panel">

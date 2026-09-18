@@ -1,12 +1,12 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams, Link } from 'react-router-dom';
-import { Button, Card, Field, TextInput, ErrorText, useToast } from '@ui/index';
+import { Button, Card, Field, TextInput, ErrorText, useToast, RoomHeader, PlayerManager } from '@ui/index';
 import { RequireIdentity } from '../../auth/RequireIdentity';
-import { randomRoomCode, isValidRoomCode, db } from '@fb/index';
+import { randomRoomCode, isValidRoomCode, db, makeHost, addLocalPlayer } from '@fb/index';
 import { set, ref } from 'firebase/database';
 import {
   createCAHRoom, joinCAHRoom, watchCAHRoom, startCAHGame, submitCard, beginJudging, pickWinner,
-  watchVotes, clearVote, resolveWinner, nextRound, leaveCAHRoom, watchMyHand, watchJudging,
+  watchVotes, clearVote, resolveWinner, nextRound, leaveCAHRoom, kickCAHPlayer, watchMyHand, watchJudging,
   type CAHRoom, type CAHHandSecret, type CAHJudgeSecret,
 } from './firebase';
 import './cah.css';
@@ -37,6 +37,7 @@ function CAHApp({ uid, name }: { uid: string; name: string }) {
 
   const isHost = room?.hostId === uid;
   const isCzar = room?.settings.czarId === uid;
+  const share = code ? `${location.origin}/housegames/cards-against-humanity/${code}` : '';
   const fail = (e: unknown) => setError(e instanceof Error ? e.message : String(e));
 
   useEffect(() => {
@@ -146,10 +147,17 @@ function CAHApp({ uid, name }: { uid: string; name: string }) {
   if (room.phase === 'lobby') {
     return (
       <main>{Header}
+        <RoomHeader gameLabel="Cards Against Humanity" code={code} shareUrl={share} />
         <Card>
-          <div className="hg-eyebrow">Room {code}</div>
-          <h2>Lobby</h2>
           <div className="scoreboard">{players.map((p) => <div key={p.id} className="row"><span>{p.name}{p.id === room.hostId ? ' 👑' : ''}</span><span>{p.score}</span></div>)}</div>
+          <PlayerManager
+            players={players}
+            hostId={room.hostId}
+            isHost={isHost}
+            onMakeHost={(target) => makeHost('cah', code, uid, target).catch(fail)}
+            onRemove={(target) => kickCAHPlayer(code, uid, target).catch(fail)}
+            onAddLocal={(n) => addLocalPlayer('cah', code, uid, n, (id, nm) => ({ id, name: nm, score: 0 })).catch(fail)}
+          />
           {isHost ? (
             <Button wide disabled={players.length < 3} onClick={() => startCAHGame(code, uid).catch(fail)} style={{ marginTop: 12 }}>
               {players.length < 3 ? `Need ${3 - players.length} more` : 'Start game'}

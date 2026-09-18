@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams, Link } from 'react-router-dom';
-import { Button, Card, Field, TextInput, ErrorText, PlayerList, useToast } from '@ui/index';
+import { Button, Card, Field, TextInput, ErrorText, PlayerList, useToast, RoomHeader, PlayerManager } from '@ui/index';
 import { RequireIdentity } from '../../auth/RequireIdentity';
-import { randomRoomCode, isValidRoomCode } from '@fb/index';
+import { randomRoomCode, isValidRoomCode, makeHost, addLocalPlayer } from '@fb/index';
 import {
   createSHRoom, joinSHRoom, watchSHRoom, startGame, nominateChancellor, submitChoice, watchVotes,
   clearVotes, resolveVote, presidentDiscard, chancellorDiscard, leaveSHRoom, kickSHPlayer,
@@ -37,6 +37,7 @@ function SHApp({ uid, name }: { uid: string; name: string }) {
   const [nomineePick, setNomineePick] = useState('');
 
   const isHost = room?.hostId === uid;
+  const share = code ? `${location.origin}/housegames/secret-hitler/${code}` : '';
   const fail = (e: unknown) => setError(e instanceof Error ? e.message : String(e));
 
   useEffect(() => {
@@ -168,10 +169,18 @@ function SHApp({ uid, name }: { uid: string; name: string }) {
   if (room.phase === 'lobby') {
     return (
       <main>{Header}
+        <RoomHeader gameLabel="Secret Hitler" code={code} shareUrl={share} />
         <Card>
-          <div className="hg-eyebrow">Room {code}</div>
           <h2>Lobby</h2>
           <PlayerList players={players} hostId={room.hostId} />
+          <PlayerManager
+            players={players}
+            hostId={room.hostId}
+            isHost={isHost}
+            onMakeHost={(target) => makeHost('secretHitler', code, uid, target).catch(fail)}
+            onRemove={(target) => kickSHPlayer(code, uid, target).catch(fail)}
+            onAddLocal={(n) => addLocalPlayer('secretHitler', code, uid, n, (id, nm) => ({ id, name: nm, alive: true })).catch(fail)}
+          />
           {isHost ? (
             <Button wide disabled={players.length < 5 || players.length > 10} onClick={() => startGame(code, uid).catch(fail)} style={{ marginTop: 18 }}>
               {players.length < 5 ? `Need ${5 - players.length} more` : players.length > 10 ? 'Too many players (max 10)' : 'Start game'}

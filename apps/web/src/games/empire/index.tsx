@@ -1,11 +1,11 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams, Link } from 'react-router-dom';
 import {
-  Button, Card, Field, TextInput, ErrorText, QR, PlayerList,
+  Button, Card, Field, TextInput, ErrorText, QR, PlayerList, RoomHeader, PlayerManager,
 } from '@ui/index';
 import { useToast } from '@ui/index';
 import { RequireIdentity } from '../../auth/RequireIdentity';
-import { randomRoomCode, isValidRoomCode } from '@fb/index';
+import { randomRoomCode, isValidRoomCode, makeHost, addLocalPlayer } from '@fb/index';
 import {
   createEmpireRoom, joinEmpireRoom, watchEmpireRoom, submitWord, watchAllWords,
   beginReveal, hideReveal, watchReveal, savePlayers, saveTheme, saveTimerOff,
@@ -36,6 +36,7 @@ function EmpireApp({ uid, name }: { uid: string; name: string }) {
   const [duration, setDuration] = useState(30);
   const [timerOn, setTimerOn] = useState(true);
   const [secret, setSecret] = useState('');
+  const [localSecrets, setLocalSecrets] = useState<Record<string, string>>({});
   const [room, setRoom] = useState<EmpireRoom | null>(null);
   const [error, setError] = useState('');
   const [helpOpen, setHelpOpen] = useState(false);
@@ -103,6 +104,17 @@ function EmpireApp({ uid, name }: { uid: string; name: string }) {
     try {
       await submitWord(code, uid, secret.trim());
       setSecret('');
+    } catch (e) { fail(e); }
+  }
+
+  // The host submits on behalf of any player added without a phone.
+  async function submitForLocal(targetUid: string) {
+    const word = localSecrets[targetUid]?.trim();
+    if (!word) return;
+    setError('');
+    try {
+      await submitWord(code, targetUid, word);
+      setLocalSecrets((s) => ({ ...s, [targetUid]: '' }));
     } catch (e) { fail(e); }
   }
 
@@ -331,17 +343,15 @@ function EmpireApp({ uid, name }: { uid: string; name: string }) {
       {Header}
       <section className="lobby">
         <div className="leave-row"><Button onClick={leave}>Leave room</Button></div>
-        <div className="room-head">
-          <div>
-            <div className="hg-eyebrow">Room {code}</div>
-            <h2>EMPIRE</h2>
-          </div>
-          {share && <QR url={share} size={150} />}
-        </div>
-        <div className="share">
-          <span>{share}</span>
-          <button className="mini" onClick={() => { navigator.clipboard.writeText(share); toast('Link copied'); }}>Copy link</button>
-        </div>
+        <RoomHeader gameLabel="Empire" code={code} shareUrl={share} />
+        <PlayerManager
+          players={players}
+          hostId={room.hostId}
+          isHost={isHost}
+          onMakeHost={(target) => makeHost('empire', code, uid, target).catch(fail)}
+          onRemove={(target) => kick(target)}
+          onAddLocal={(n) => addLocalPlayer('empire', code, uid, n, mk).catch(fail)}
+        />
         <div className="lobby-grid">
           <div>
             <h3>Players <b>{players.length}</b></h3>
@@ -377,6 +387,17 @@ function EmpireApp({ uid, name }: { uid: string; name: string }) {
                 <Button wide onClick={submit}>Submit my word</Button>
               </>
             )}
+            {isHost && players.filter((p) => p.id.startsWith('local-') && !p.submitted).map((p) => (
+              <div key={p.id} style={{ marginTop: 14, paddingTop: 14, borderTop: '1px solid var(--hg-border)' }}>
+                <small>Submit for {p.name} (no phone)</small>
+                <input
+                  value={localSecrets[p.id] ?? ''}
+                  onChange={(e) => setLocalSecrets((s) => ({ ...s, [p.id]: e.target.value }))}
+                  placeholder=""
+                />
+                <Button wide onClick={() => submitForLocal(p.id)}>Submit for {p.name}</Button>
+              </div>
+            ))}
           </div>
         </div>
         {isHost && (

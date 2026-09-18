@@ -24,12 +24,12 @@ function gameRules(ns) {
   // Secret Hitler's president/chancellor, Wavelength's psychic, an artist
   // or actor) who is very often NOT the room host, but still needs to
   // write shared, non-secret round state (a clue, a guess, a policy).
-  // Gating settings/phase/state to host-only broke every one of those —
+  // Gating settings/phase/state to host-only broke every one of those,
   // the client-side check in saveSettings/setPhase is tautological (it
   // compares room.hostId to itself), so the real enforcement is the rule
   // below, and a non-host caller's write was silently rejected. Widening
   // this to "any player currently in the room" fixes it everywhere at
-  // once. Secrets stay strictly per-uid gated regardless — this only
+  // once. Secrets stay strictly per-uid gated regardless, this only
   // affects the already-public parts of a room.
   const anyPlayer = `root.child('${ns}/rooms/'+$room+'/players/'+auth.uid).exists()`;
   const hostOrPlayer = `(${hostOnly} || ${anyPlayer})`;

@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams, Link } from 'react-router-dom';
 import {
-  Button, Card, ErrorText, PlayerList, VoteGrid, useToast,
+  Button, Card, ErrorText, PlayerList, VoteGrid, useToast, RoomHeader, PlayerManager,
 } from '@ui/index';
-import { randomRoomCode, isValidRoomCode } from '@fb/index';
+import { randomRoomCode, isValidRoomCode, makeHost, addLocalPlayer } from '@fb/index';
 import { RequireIdentity } from '../../auth/RequireIdentity';
 import {
   createWerewolfRoom, joinWerewolfRoom, watchWerewolfRoom, watchMySecret,
@@ -140,12 +140,18 @@ function WerewolfApp({ uid, name }: { uid: string; name: string }) {
       <main>{Header}
         <div className="room-wrap">
           <div className="leave-row"><Button onClick={leave}>Leave room</Button></div>
-          <div className="room-head"><h2 style={{ fontFamily: 'var(--hg-font-display)', fontStyle: 'italic' }}>Room {code}</h2></div>
+          <RoomHeader gameLabel="Werewolf" code={code} shareUrl={share} />
           <Card>
-            <p className="hg-note">{share}</p>
-            <Button ghost onClick={() => { navigator.clipboard.writeText(share); toast('Link copied'); }}>Copy link</Button>
-            <h3 style={{ marginTop: 24 }}>Players ({players.length})</h3>
-            <PlayerList players={players} hostId={room.hostId} rightSlot={(p) => (isHost && p.id !== room.hostId ? <button onClick={() => kickPlayer(code, uid, p.id).catch(fail)}>Remove</button> : null)} />
+            <h3>Players ({players.length})</h3>
+            <PlayerList players={players} hostId={room.hostId} />
+            <PlayerManager
+              players={players}
+              hostId={room.hostId}
+              isHost={isHost}
+              onMakeHost={(target) => makeHost('werewolf', code, uid, target).catch(fail)}
+              onRemove={(target) => kickPlayer(code, uid, target).catch(fail)}
+              onAddLocal={(n) => addLocalPlayer('werewolf', code, uid, n, (id, nm) => ({ id, name: nm, alive: true })).catch(fail)}
+            />
             {isHost && (
               <Button wide disabled={players.length < 4} onClick={() => assignRolesAndStartNight(code, uid).catch(fail)} style={{ marginTop: 20 }}>
                 {players.length < 4 ? 'Need at least 4 players' : 'Assign roles & start'}
