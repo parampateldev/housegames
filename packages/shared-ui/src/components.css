@@ -115,7 +115,23 @@
 .hg-player-manager { margin: 14px 0; }
 .hg-player-manager-panel { margin-top: 10px; padding: 16px; border: 1px solid var(--hg-border); border-radius: 10px; background: var(--hg-card); }
 .hg-manage-list { list-style: none; margin: 0 0 14px; padding: 0; display: flex; flex-direction: column; gap: 8px; }
-.hg-manage-list li { display: flex; justify-content: space-between; align-items: center; gap: 10px; font-size: 14px; }
-.hg-manage-actions { display: flex; gap: 6px; }
-.hg-add-local { display: flex; gap: 10px; align-items: center; }
-.hg-add-local .hg-input { flex: 1; }
+.hg-manage-list li { display: flex; justify-content: space-between; align-items: center; gap: 10px; font-size: 14px; flex-wrap: wrap; }
+.hg-manage-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+.hg-add-local { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.hg-add-local .hg-input { flex: 1; min-width: 160px; }
+.hg-add-local .hg-btn { flex: none; }
+
+@media (max-width: 480px) {
+  .hg-share-bar { flex-direction: column; align-items: stretch; gap: 8px; }
+  .hg-share-bar span { white-space: normal; word-break: break-all; }
+  .hg-room-header-main { flex-direction: column; align-items: flex-start; }
+}
+
+.help-button { padding: 7px 13px; font-size: 12px; background: transparent; color: inherit; border: 1px solid currentColor; border-radius: 999px; cursor: pointer; font-family: var(--hg-font-body); }
+.help-backdrop { position: fixed; inset: 0; z-index: 50; background: #15120fcc; display: grid; place-items: center; padding: 18px; }
+.help-panel { position: relative; width: min(560px, 100%); max-height: 90vh; overflow: auto; background: var(--hg-card); color: var(--hg-ink); border-radius: 12px; padding: 30px; }
+.help-panel h2 { margin-top: 4px; }
+.help-panel ol { padding-left: 22px; }
+.help-panel li { margin: 12px 0; line-height: 1.5; }
+.help-panel p { line-height: 1.55; }
+.help-close { position: absolute; right: 12px; top: 10px; background: transparent; color: var(--hg-ink); font-size: 28px; padding: 4px 10px; border: 0; cursor: pointer; line-height: 1; }

@@ -63,7 +63,7 @@ describe('room creation & host handoff', () => {
     await assertFails(db.ref(`${NS}/rooms/${ROOM}/hostId`).set('someoneElse'));
   });
 
-  it('only the host can write phase/settings/createdAt', async () => {
+  it('only the host can write createdAt', async () => {
     await seed(async (db) => {
       await db.ref(`${NS}/rooms/${ROOM}/hostId`).set('host1');
       await db.ref(`${NS}/rooms/${ROOM}/players/host1`).set({ id: 'host1', name: 'Host' });
@@ -71,8 +71,29 @@ describe('room creation & host handoff', () => {
 
     const host = dbAs('host1');
     const stranger = dbAs('stranger');
-    await assertSucceeds(host.ref(`${NS}/rooms/${ROOM}/phase`).set('reveal'));
-    await assertFails(stranger.ref(`${NS}/rooms/${ROOM}/phase`).set('reveal'));
+    await assertSucceeds(host.ref(`${NS}/rooms/${ROOM}/createdAt`).set(Date.now()));
+    await assertFails(stranger.ref(`${NS}/rooms/${ROOM}/createdAt`).set(Date.now()));
+  });
+
+  it('a non-host PLAYER can write phase/settings/state (the active-player fix) — a non-player stranger still cannot', async () => {
+    // Regression test: Codenames' spymaster, Wavelength's psychic, Secret
+    // Hitler's president are usually not the room host, but they need to
+    // write shared round state (a clue, a guess, a policy). Before this
+    // rule, only the host could, silently breaking every one of those
+    // actions for a non-host active player.
+    await seed(async (db) => {
+      await db.ref(`${NS}/rooms/${ROOM}/hostId`).set('host1');
+      await db.ref(`${NS}/rooms/${ROOM}/players/host1`).set({ id: 'host1', name: 'Host' });
+      await db.ref(`${NS}/rooms/${ROOM}/players/p2`).set({ id: 'p2', name: 'P2' });
+    });
+
+    const player = dbAs('p2');
+    const stranger = dbAs('stranger');
+    await assertSucceeds(player.ref(`${NS}/rooms/${ROOM}/phase`).set('clue'));
+    await assertSucceeds(player.ref(`${NS}/rooms/${ROOM}/settings`).set({ clue: 'ocean' }));
+    await assertSucceeds(player.ref(`${NS}/rooms/${ROOM}/state`).set({ round: 2 }));
+    await assertFails(stranger.ref(`${NS}/rooms/${ROOM}/phase`).set('clue'));
+    await assertFails(stranger.ref(`${NS}/rooms/${ROOM}/settings`).set({ clue: 'ocean' }));
   });
 
   it('a player can write their own player node but not someone else\'s', async () => {
@@ -210,7 +231,7 @@ describe('users/, each account\'s data is private to that account', () => {
 });
 
 describe('cross-namespace smoke test, the generated template is identical everywhere', () => {
-  it('the "mafia" namespace enforces the same host-only phase write rule as "empire"', async () => {
+  it('the "mafia" namespace enforces the same phase write rule (host or room player) as "empire"', async () => {
     await seed(async (db) => {
       await db.ref('mafia/rooms/ZZZZZ/hostId').set('host1');
     });

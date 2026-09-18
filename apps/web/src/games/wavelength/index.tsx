@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams, Link } from 'react-router-dom';
-import { Button, Card, Field, TextInput, ErrorText, PlayerList, useToast, QR } from '@ui/index';
+import { Button, Card, Field, TextInput, ErrorText, PlayerList, RoomHeader, PlayerManager } from '@ui/index';
 import { RequireIdentity } from '../../auth/RequireIdentity';
-import { randomRoomCode, isValidRoomCode } from '@fb/index';
+import { randomRoomCode, isValidRoomCode, makeHost, addLocalPlayer } from '@fb/index';
 import {
   createWavelengthRoom, joinWavelengthRoom, watchWavelengthRoom, watchMyTarget,
   startRound, submitClue, submitTeamGuess, submitOpponentCall, revealTarget, finishRound, setTeam,
@@ -20,7 +20,6 @@ export default function WavelengthGame() {
 
 function App({ uid, name }: { uid: string; name: string }) {
   const nav = useNavigate();
-  const toast = useToast();
   const { code: urlCode } = useParams();
   const startCode = urlCode && isValidRoomCode(urlCode.toUpperCase(), CODE_LENGTH) ? urlCode.toUpperCase() : '';
 
@@ -32,6 +31,7 @@ function App({ uid, name }: { uid: string; name: string }) {
   const [guess, setGuess] = useState(50);
   const [error, setError] = useState('');
   const [revealedTarget, setRevealedTarget] = useState<number | null>(null);
+  const [localPsychicTarget, setLocalPsychicTarget] = useState<number | null>(null);
   const fail = (e: unknown) => setError(e instanceof Error ? e.message : String(e));
   const isHost = room?.hostId === uid;
 
@@ -44,6 +44,15 @@ function App({ uid, name }: { uid: string; name: string }) {
     if (!code) return;
     return watchMyTarget(code, uid, (s) => setTarget(s?.target ?? null));
   }, [code, uid]);
+
+  // A local (phoneless) psychic has no client watching their own target, so
+  // the host reads it directly, the same read revealTarget already does at
+  // the end of the round, just fetched earlier while the psychic is "seeing".
+  const psychicId = room?.settings?.psychicId;
+  useEffect(() => {
+    if (!isHost || !psychicId?.startsWith('local-') || !code) { setLocalPsychicTarget(null); return; }
+    revealTarget(code, psychicId).then(setLocalPsychicTarget).catch(() => {});
+  }, [isHost, psychicId, code]);
 
   async function host() {
     setError('');
@@ -171,10 +180,17 @@ function App({ uid, name }: { uid: string; name: string }) {
     return (
       <main>{Header}
         <Card>
-          <div className="room-head"><div className="hg-eyebrow">Room {code}</div>{share && <QR url={share} size={110} />}</div>
-          <button className="mini" onClick={() => { navigator.clipboard.writeText(share); toast('Link copied'); }} style={{ marginBottom: 16 }}>Copy link</button>
+          <RoomHeader gameLabel="Wavelength" code={code} shareUrl={share} />
           <div className="scoreboard"><span>Team A: {s?.scoreA ?? 0}</span><span>Team B: {s?.scoreB ?? 0}</span></div>
           <PlayerList players={players.map((p) => ({ ...p, name: `${p.name} (${p.team ?? '-'})` }))} hostId={room.hostId} />
+          <PlayerManager
+            players={players}
+            hostId={room.hostId}
+            isHost={isHost}
+            onMakeHost={(target) => makeHost('wavelength', code, uid, target).catch(fail)}
+            onRemove={(target) => kickWavelengthPlayer(code, uid, target).catch(fail)}
+            onAddLocal={(n) => addLocalPlayer('wavelength', code, uid, n, (id, nm) => ({ id, name: nm, team: 'B' })).catch(fail)}
+          />
           <div className="actions">
             <Button onClick={() => setTeam(code, uid, 'A')}>Join Team A</Button>
             <Button onClick={() => setTeam(code, uid, 'B')}>Join Team B</Button>

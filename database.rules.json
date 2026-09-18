@@ -17,16 +17,16 @@
             ".write": "auth != null && root.child('empire/rooms/'+$room+'/hostId').val() === auth.uid"
           },
           "phase": {
-            ".write": "auth != null && root.child('empire/rooms/'+$room+'/hostId').val() === auth.uid"
+            ".write": "auth != null && (root.child('empire/rooms/'+$room+'/hostId').val() === auth.uid || root.child('empire/rooms/'+$room+'/players/'+auth.uid).exists())"
           },
           "createdAt": {
             ".write": "auth != null && root.child('empire/rooms/'+$room+'/hostId').val() === auth.uid"
           },
           "settings": {
-            ".write": "auth != null && root.child('empire/rooms/'+$room+'/hostId').val() === auth.uid"
+            ".write": "auth != null && (root.child('empire/rooms/'+$room+'/hostId').val() === auth.uid || root.child('empire/rooms/'+$room+'/players/'+auth.uid).exists())"
           },
           "state": {
-            ".write": "auth != null && root.child('empire/rooms/'+$room+'/hostId').val() === auth.uid"
+            ".write": "auth != null && (root.child('empire/rooms/'+$room+'/hostId').val() === auth.uid || root.child('empire/rooms/'+$room+'/players/'+auth.uid).exists())"
           },
           "players": {
             "$uid": {
@@ -67,16 +67,16 @@
             ".write": "auth != null && root.child('imposter/rooms/'+$room+'/hostId').val() === auth.uid"
           },
           "phase": {
-            ".write": "auth != null && root.child('imposter/rooms/'+$room+'/hostId').val() === auth.uid"
+            ".write": "auth != null && (root.child('imposter/rooms/'+$room+'/hostId').val() === auth.uid || root.child('imposter/rooms/'+$room+'/players/'+auth.uid).exists())"
           },
           "createdAt": {
             ".write": "auth != null && root.child('imposter/rooms/'+$room+'/hostId').val() === auth.uid"
           },
           "settings": {
-            ".write": "auth != null && root.child('imposter/rooms/'+$room+'/hostId').val() === auth.uid"
+            ".write": "auth != null && (root.child('imposter/rooms/'+$room+'/hostId').val() === auth.uid || root.child('imposter/rooms/'+$room+'/players/'+auth.uid).exists())"
           },
           "state": {
-            ".write": "auth != null && root.child('imposter/rooms/'+$room+'/hostId').val() === auth.uid"
+            ".write": "auth != null && (root.child('imposter/rooms/'+$room+'/hostId').val() === auth.uid || root.child('imposter/rooms/'+$room+'/players/'+auth.uid).exists())"
           },
           "players": {
             "$uid": {
@@ -117,16 +117,16 @@
             ".write": "auth != null && root.child('mafia/rooms/'+$room+'/hostId').val() === auth.uid"
           },
           "phase": {
-            ".write": "auth != null && root.child('mafia/rooms/'+$room+'/hostId').val() === auth.uid"
+            ".write": "auth != null && (root.child('mafia/rooms/'+$room+'/hostId').val() === auth.uid || root.child('mafia/rooms/'+$room+'/players/'+auth.uid).exists())"
           },
           "createdAt": {
             ".write": "auth != null && root.child('mafia/rooms/'+$room+'/hostId').val() === auth.uid"
           },
           "settings": {
-            ".write": "auth != null && root.child('mafia/rooms/'+$room+'/hostId').val() === auth.uid"
+            ".write": "auth != null && (root.child('mafia/rooms/'+$room+'/hostId').val() === auth.uid || root.child('mafia/rooms/'+$room+'/players/'+auth.uid).exists())"
           },
           "state": {
-            ".write": "auth != null && root.child('mafia/rooms/'+$room+'/hostId').val() === auth.uid"
+            ".write": "auth != null && (root.child('mafia/rooms/'+$room+'/hostId').val() === auth.uid || root.child('mafia/rooms/'+$room+'/players/'+auth.uid).exists())"
           },
           "players": {
             "$uid": {
@@ -167,16 +167,16 @@
             ".write": "auth != null && root.child('werewolf/rooms/'+$room+'/hostId').val() === auth.uid"
           },
           "phase": {
-            ".write": "auth != null && root.child('werewolf/rooms/'+$room+'/hostId').val() === auth.uid"
+            ".write": "auth != null && (root.child('werewolf/rooms/'+$room+'/hostId').val() === auth.uid || root.child('werewolf/rooms/'+$room+'/players/'+auth.uid).exists())"
           },
           "createdAt": {
             ".write": "auth != null && root.child('werewolf/rooms/'+$room+'/hostId').val() === auth.uid"
           },
           "settings": {
-            ".write": "auth != null && root.child('werewolf/rooms/'+$room+'/hostId').val() === auth.uid"
+            ".write": "auth != null && (root.child('werewolf/rooms/'+$room+'/hostId').val() === auth.uid || root.child('werewolf/rooms/'+$room+'/players/'+auth.uid).exists())"
           },
           "state": {
-            ".write": "auth != null && root.child('werewolf/rooms/'+$room+'/hostId').val() === auth.uid"
+            ".write": "auth != null && (root.child('werewolf/rooms/'+$room+'/hostId').val() === auth.uid || root.child('werewolf/rooms/'+$room+'/players/'+auth.uid).exists())"
           },
           "players": {
             "$uid": {
@@ -217,16 +217,16 @@
             ".write": "auth != null && root.child('secretHitler/rooms/'+$room+'/hostId').val() === auth.uid"
           },
           "phase": {
-            ".write": "auth != null && root.child('secretHitler/rooms/'+$room+'/hostId').val() === auth.uid"
+            ".write": "auth != null && (root.child('secretHitler/rooms/'+$room+'/hostId').val() === auth.uid || root.child('secretHitler/rooms/'+$room+'/players/'+auth.uid).exists())"
           },
           "createdAt": {
             ".write": "auth != null && root.child('secretHitler/rooms/'+$room+'/hostId').val() === auth.uid"
           },
           "settings": {
-            ".write": "auth != null && root.child('secretHitler/rooms/'+$room+'/hostId').val() === auth.uid"
+            ".write": "auth != null && (root.child('secretHitler/rooms/'+$room+'/hostId').val() === auth.uid || root.child('secretHitler/rooms/'+$room+'/players/'+auth.uid).exists())"
           },
           "state": {
-            ".write": "auth != null && root.child('secretHitler/rooms/'+$room+'/hostId').val() === auth.uid"
+            ".write": "auth != null && (root.child('secretHitler/rooms/'+$room+'/hostId').val() === auth.uid || root.child('secretHitler/rooms/'+$room+'/players/'+auth.uid).exists())"
           },
           "players": {
             "$uid": {
@@ -267,16 +267,16 @@
             ".write": "auth != null && root.child('spyfall/rooms/'+$room+'/hostId').val() === auth.uid"
           },
           "phase": {
-            ".write": "auth != null && root.child('spyfall/rooms/'+$room+'/hostId').val() === auth.uid"
+            ".write": "auth != null && (root.child('spyfall/rooms/'+$room+'/hostId').val() === auth.uid || root.child('spyfall/rooms/'+$room+'/players/'+auth.uid).exists())"
           },
           "createdAt": {
             ".write": "auth != null && root.child('spyfall/rooms/'+$room+'/hostId').val() === auth.uid"
           },
           "settings": {
-            ".write": "auth != null && root.child('spyfall/rooms/'+$room+'/hostId').val() === auth.uid"
+            ".write": "auth != null && (root.child('spyfall/rooms/'+$room+'/hostId').val() === auth.uid || root.child('spyfall/rooms/'+$room+'/players/'+auth.uid).exists())"
           },
           "state": {
-            ".write": "auth != null && root.child('spyfall/rooms/'+$room+'/hostId').val() === auth.uid"
+            ".write": "auth != null && (root.child('spyfall/rooms/'+$room+'/hostId').val() === auth.uid || root.child('spyfall/rooms/'+$room+'/players/'+auth.uid).exists())"
           },
           "players": {
             "$uid": {
@@ -317,16 +317,16 @@
             ".write": "auth != null && root.child('codenames/rooms/'+$room+'/hostId').val() === auth.uid"
           },
           "phase": {
-            ".write": "auth != null && root.child('codenames/rooms/'+$room+'/hostId').val() === auth.uid"
+            ".write": "auth != null && (root.child('codenames/rooms/'+$room+'/hostId').val() === auth.uid || root.child('codenames/rooms/'+$room+'/players/'+auth.uid).exists())"
           },
           "createdAt": {
             ".write": "auth != null && root.child('codenames/rooms/'+$room+'/hostId').val() === auth.uid"
           },
           "settings": {
-            ".write": "auth != null && root.child('codenames/rooms/'+$room+'/hostId').val() === auth.uid"
+            ".write": "auth != null && (root.child('codenames/rooms/'+$room+'/hostId').val() === auth.uid || root.child('codenames/rooms/'+$room+'/players/'+auth.uid).exists())"
           },
           "state": {
-            ".write": "auth != null && root.child('codenames/rooms/'+$room+'/hostId').val() === auth.uid"
+            ".write": "auth != null && (root.child('codenames/rooms/'+$room+'/hostId').val() === auth.uid || root.child('codenames/rooms/'+$room+'/players/'+auth.uid).exists())"
           },
           "players": {
             "$uid": {
@@ -367,16 +367,16 @@
             ".write": "auth != null && root.child('pictionary/rooms/'+$room+'/hostId').val() === auth.uid"
           },
           "phase": {
-            ".write": "auth != null && root.child('pictionary/rooms/'+$room+'/hostId').val() === auth.uid"
+            ".write": "auth != null && (root.child('pictionary/rooms/'+$room+'/hostId').val() === auth.uid || root.child('pictionary/rooms/'+$room+'/players/'+auth.uid).exists())"
           },
           "createdAt": {
             ".write": "auth != null && root.child('pictionary/rooms/'+$room+'/hostId').val() === auth.uid"
           },
           "settings": {
-            ".write": "auth != null && root.child('pictionary/rooms/'+$room+'/hostId').val() === auth.uid"
+            ".write": "auth != null && (root.child('pictionary/rooms/'+$room+'/hostId').val() === auth.uid || root.child('pictionary/rooms/'+$room+'/players/'+auth.uid).exists())"
           },
           "state": {
-            ".write": "auth != null && root.child('pictionary/rooms/'+$room+'/hostId').val() === auth.uid"
+            ".write": "auth != null && (root.child('pictionary/rooms/'+$room+'/hostId').val() === auth.uid || root.child('pictionary/rooms/'+$room+'/players/'+auth.uid).exists())"
           },
           "players": {
             "$uid": {
@@ -425,16 +425,16 @@
             ".write": "auth != null && root.child('charades/rooms/'+$room+'/hostId').val() === auth.uid"
           },
           "phase": {
-            ".write": "auth != null && root.child('charades/rooms/'+$room+'/hostId').val() === auth.uid"
+            ".write": "auth != null && (root.child('charades/rooms/'+$room+'/hostId').val() === auth.uid || root.child('charades/rooms/'+$room+'/players/'+auth.uid).exists())"
           },
           "createdAt": {
             ".write": "auth != null && root.child('charades/rooms/'+$room+'/hostId').val() === auth.uid"
           },
           "settings": {
-            ".write": "auth != null && root.child('charades/rooms/'+$room+'/hostId').val() === auth.uid"
+            ".write": "auth != null && (root.child('charades/rooms/'+$room+'/hostId').val() === auth.uid || root.child('charades/rooms/'+$room+'/players/'+auth.uid).exists())"
           },
           "state": {
-            ".write": "auth != null && root.child('charades/rooms/'+$room+'/hostId').val() === auth.uid"
+            ".write": "auth != null && (root.child('charades/rooms/'+$room+'/hostId').val() === auth.uid || root.child('charades/rooms/'+$room+'/players/'+auth.uid).exists())"
           },
           "players": {
             "$uid": {
@@ -475,16 +475,16 @@
             ".write": "auth != null && root.child('headsUp/rooms/'+$room+'/hostId').val() === auth.uid"
           },
           "phase": {
-            ".write": "auth != null && root.child('headsUp/rooms/'+$room+'/hostId').val() === auth.uid"
+            ".write": "auth != null && (root.child('headsUp/rooms/'+$room+'/hostId').val() === auth.uid || root.child('headsUp/rooms/'+$room+'/players/'+auth.uid).exists())"
           },
           "createdAt": {
             ".write": "auth != null && root.child('headsUp/rooms/'+$room+'/hostId').val() === auth.uid"
           },
           "settings": {
-            ".write": "auth != null && root.child('headsUp/rooms/'+$room+'/hostId').val() === auth.uid"
+            ".write": "auth != null && (root.child('headsUp/rooms/'+$room+'/hostId').val() === auth.uid || root.child('headsUp/rooms/'+$room+'/players/'+auth.uid).exists())"
           },
           "state": {
-            ".write": "auth != null && root.child('headsUp/rooms/'+$room+'/hostId').val() === auth.uid"
+            ".write": "auth != null && (root.child('headsUp/rooms/'+$room+'/hostId').val() === auth.uid || root.child('headsUp/rooms/'+$room+'/players/'+auth.uid).exists())"
           },
           "players": {
             "$uid": {
@@ -525,16 +525,16 @@
             ".write": "auth != null && root.child('wavelength/rooms/'+$room+'/hostId').val() === auth.uid"
           },
           "phase": {
-            ".write": "auth != null && root.child('wavelength/rooms/'+$room+'/hostId').val() === auth.uid"
+            ".write": "auth != null && (root.child('wavelength/rooms/'+$room+'/hostId').val() === auth.uid || root.child('wavelength/rooms/'+$room+'/players/'+auth.uid).exists())"
           },
           "createdAt": {
             ".write": "auth != null && root.child('wavelength/rooms/'+$room+'/hostId').val() === auth.uid"
           },
           "settings": {
-            ".write": "auth != null && root.child('wavelength/rooms/'+$room+'/hostId').val() === auth.uid"
+            ".write": "auth != null && (root.child('wavelength/rooms/'+$room+'/hostId').val() === auth.uid || root.child('wavelength/rooms/'+$room+'/players/'+auth.uid).exists())"
           },
           "state": {
-            ".write": "auth != null && root.child('wavelength/rooms/'+$room+'/hostId').val() === auth.uid"
+            ".write": "auth != null && (root.child('wavelength/rooms/'+$room+'/hostId').val() === auth.uid || root.child('wavelength/rooms/'+$room+'/players/'+auth.uid).exists())"
           },
           "players": {
             "$uid": {
@@ -575,16 +575,16 @@
             ".write": "auth != null && root.child('cah/rooms/'+$room+'/hostId').val() === auth.uid"
           },
           "phase": {
-            ".write": "auth != null && root.child('cah/rooms/'+$room+'/hostId').val() === auth.uid"
+            ".write": "auth != null && (root.child('cah/rooms/'+$room+'/hostId').val() === auth.uid || root.child('cah/rooms/'+$room+'/players/'+auth.uid).exists())"
           },
           "createdAt": {
             ".write": "auth != null && root.child('cah/rooms/'+$room+'/hostId').val() === auth.uid"
           },
           "settings": {
-            ".write": "auth != null && root.child('cah/rooms/'+$room+'/hostId').val() === auth.uid"
+            ".write": "auth != null && (root.child('cah/rooms/'+$room+'/hostId').val() === auth.uid || root.child('cah/rooms/'+$room+'/players/'+auth.uid).exists())"
           },
           "state": {
-            ".write": "auth != null && root.child('cah/rooms/'+$room+'/hostId').val() === auth.uid"
+            ".write": "auth != null && (root.child('cah/rooms/'+$room+'/hostId').val() === auth.uid || root.child('cah/rooms/'+$room+'/players/'+auth.uid).exists())"
           },
           "players": {
             "$uid": {

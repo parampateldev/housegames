@@ -1,12 +1,12 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams, Link } from 'react-router-dom';
-import { Button, Card, Field, TextInput, ErrorText, PlayerList, Timer, useToast, QR } from '@ui/index';
+import { Button, Card, Field, TextInput, ErrorText, PlayerList, Timer, RoomHeader, PlayerManager } from '@ui/index';
 import { RequireIdentity } from '../../auth/RequireIdentity';
-import { randomRoomCode, isValidRoomCode, saveSettings } from '@fb/index';
+import { randomRoomCode, isValidRoomCode, saveSettings, makeHost, addLocalPlayer } from '@fb/index';
 import {
   createHeadsUpRoom, joinHeadsUpRoom, watchHeadsUpRoom, watchMyWord,
   startGuessing, nextWordSameRound, endRound, backToLobby,
-  leaveHeadsUpRoom, type HeadsUpRoom,
+  leaveHeadsUpRoom, kickHeadsUpPlayer, type HeadsUpRoom,
 } from './firebase';
 import { nextGuesser, audienceFor, type Player } from './game';
 import { CATEGORIES, nextWord } from './words';
@@ -20,7 +20,6 @@ export default function HeadsUpGame() {
 
 function App({ uid, name }: { uid: string; name: string }) {
   const nav = useNavigate();
-  const toast = useToast();
   const { code: urlCode } = useParams();
   const startCode = urlCode && isValidRoomCode(urlCode.toUpperCase(), CODE_LENGTH) ? urlCode.toUpperCase() : '';
 
@@ -145,9 +144,16 @@ function App({ uid, name }: { uid: string; name: string }) {
     return (
       <main>{Header}
         <Card>
-          <div className="room-head"><div className="hg-eyebrow">Room {code}</div>{share && <QR url={share} size={110} />}</div>
-          <button className="mini" onClick={() => { navigator.clipboard.writeText(share); toast('Link copied'); }} style={{ marginBottom: 16 }}>Copy link</button>
+          <RoomHeader gameLabel="Heads Up" code={code} shareUrl={share} />
           <PlayerList players={players.map((p) => ({ ...p, name: `${p.name} · ${p.score ?? 0}pt` }))} hostId={room.hostId} />
+          <PlayerManager
+            players={players}
+            hostId={room.hostId}
+            isHost={isHost}
+            onMakeHost={(target) => makeHost('headsUp', code, uid, target).catch(fail)}
+            onRemove={(target) => kickHeadsUpPlayer(code, uid, target).catch(fail)}
+            onAddLocal={(n) => addLocalPlayer('headsUp', code, uid, n, (id, nm) => ({ id, name: nm })).catch(fail)}
+          />
           {isHost && (
             <Field label="Category">
               <select value={s?.category} onChange={(e) => saveSettings('headsUp', code, room.hostId, { ...s!, category: e.target.value })} className="hg-input">
@@ -165,13 +171,19 @@ function App({ uid, name }: { uid: string; name: string }) {
 
   if (room.phase === 'guessing') {
     const isGuesser = s?.guesserId === uid;
+    const guesserIsLocal = Boolean(s?.guesserId?.startsWith('local-'));
+    const showTapButtons = isGuesser || (isHost && guesserIsLocal);
     return (
       <main>{Header}
         <section className="center">
           <div className="hg-eyebrow">{s?.category}</div>
-          {isGuesser ? (
+          {showTapButtons ? (
             <div className="guesser-card">
-              <p className="hg-note">Everyone else can see the word, get them to describe it!</p>
+              <p className="hg-note">
+                {guesserIsLocal
+                  ? `You're tapping for ${room.players?.[s!.guesserId]?.name}, who has no device. Read them the clues out loud.`
+                  : "Everyone else can see the word, get them to describe it!"}
+              </p>
               <div className="tap-buttons">
                 <Button onClick={() => tap(true)}>✓ Correct</Button>
                 <Button ghost onClick={() => tap(false)}>✗ Pass</Button>
