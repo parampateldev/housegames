@@ -20,6 +20,19 @@ function gameRules(ns) {
   // set who currently holds it.
   const privilegedOnly = `root.child('${ns}/rooms/'+$room+'/privilegedUid').val() === auth.uid`;
   const hostOrPrivileged = `(${hostOnly} || ${privilegedOnly})`;
+  // Many games have a rotating "active player" (Codenames' spymaster,
+  // Secret Hitler's president/chancellor, Wavelength's psychic, an artist
+  // or actor) who is very often NOT the room host, but still needs to
+  // write shared, non-secret round state (a clue, a guess, a policy).
+  // Gating settings/phase/state to host-only broke every one of those —
+  // the client-side check in saveSettings/setPhase is tautological (it
+  // compares room.hostId to itself), so the real enforcement is the rule
+  // below, and a non-host caller's write was silently rejected. Widening
+  // this to "any player currently in the room" fixes it everywhere at
+  // once. Secrets stay strictly per-uid gated regardless — this only
+  // affects the already-public parts of a room.
+  const anyPlayer = `root.child('${ns}/rooms/'+$room+'/players/'+auth.uid).exists()`;
+  const hostOrPlayer = `(${hostOnly} || ${anyPlayer})`;
   return {
     rooms: {
       $room: {
@@ -30,9 +43,9 @@ function gameRules(ns) {
           '.write': `auth != null && ((!data.exists() && newData.val() === auth.uid) || (data.val() === auth.uid && newData.exists() && newData.val() !== auth.uid && newData.parent().child('players/'+newData.val()).exists()))`,
         },
         privilegedUid: { '.write': `auth != null && ${hostOnly}` },
-        phase: { '.write': `auth != null && ${hostOnly}` },
+        phase: { '.write': `auth != null && ${hostOrPlayer}` },
         createdAt: { '.write': `auth != null && ${hostOnly}` },
-        settings: { '.write': `auth != null && ${hostOnly}` },
+        settings: { '.write': `auth != null && ${hostOrPlayer}` },
         // Catch-all for whatever public, non-secret round state a given game
         // needs (deck pointers, election tracker, board, current word queue,
         // ...) that doesn't fit hostId/phase/createdAt/settings/players/votes.
@@ -40,7 +53,7 @@ function gameRules(ns) {
         // field silently falls through to the room-level create/delete-only
         // rule and gets denied, this exists so no game has to discover that
         // the hard way.
-        state: { '.write': `auth != null && ${hostOnly}` },
+        state: { '.write': `auth != null && ${hostOrPlayer}` },
         players: {
           $uid: { '.write': `auth != null && (auth.uid === $uid || ${hostOnly})` },
         },

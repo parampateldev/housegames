@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams, Link } from 'react-router-dom';
 import {
-  Button, Card, Field, TextInput, ErrorText, Timer, PlayerList, useToast,
+  Button, Card, Field, TextInput, ErrorText, Timer, PlayerList, useToast, RoomHeader, PlayerManager,
 } from '@ui/index';
 import { RequireIdentity } from '../../auth/RequireIdentity';
-import { randomRoomCode, isValidRoomCode } from '@fb/index';
+import { randomRoomCode, isValidRoomCode, makeHost, addLocalPlayer } from '@fb/index';
 import {
   createPictionaryRoom, joinPictionaryRoom, watchPictionaryRoom, advanceSettings,
   setRoundWord, watchMyWord, clearRoundWord, awardPoint, setPictionaryPhase,
@@ -61,6 +61,16 @@ function PictionaryApp({ uid, name }: { uid: string; name: string }) {
     return watchMyWord(code, uid, setMyWord);
   }, [code, isArtist, room?.phase, uid]);
 
+  // A local (phoneless) artist has no device watching their own word, so
+  // the host, who already has read access to any player's secret, sees it
+  // too and relays it for them.
+  const artistHasNoDevice = artistId.startsWith('local-');
+  const [localArtistWord, setLocalArtistWord] = useState<{ word: string; category: string } | null>(null);
+  useEffect(() => {
+    if (!code || !isHost || !artistHasNoDevice || room?.phase !== 'drawing') { setLocalArtistWord(null); return; }
+    return watchMyWord(code, artistId, setLocalArtistWord);
+  }, [code, isHost, artistHasNoDevice, artistId, room?.phase]);
+
   useEffect(() => {
     if (room?.phase === 'drawing') setRoundEndsAt(Date.now() + (room.settings.roundSeconds || 60) * 1000);
   }, [room?.phase, round]);
@@ -96,6 +106,14 @@ function PictionaryApp({ uid, name }: { uid: string; name: string }) {
   async function kick(id: string) {
     if (!isHost) return;
     try { await kickPlayer(code, uid, id); } catch (e) { fail(e); }
+  }
+
+  async function handOffHost(targetUid: string) {
+    try { await makeHost('pictionary', code, uid, targetUid); } catch (e) { fail(e); }
+  }
+
+  async function addPhonelessPlayer(playerName: string) {
+    try { await addLocalPlayer('pictionary', code, uid, playerName, mk); } catch (e) { fail(e); }
   }
 
   async function startRound(firstArtistId?: string) {
@@ -193,10 +211,16 @@ function PictionaryApp({ uid, name }: { uid: string; name: string }) {
       <main>
         <div className="pg-stage">
           <div className="pg-leave"><Button ghost small onClick={leave}>Leave room</Button></div>
-          <div className="hg-eyebrow">Room {code}</div>
-          <h2 style={{ fontFamily: 'var(--hg-font-display)', fontStyle: 'italic' }}>Waiting to start</h2>
-          <p className="hg-note">{share}</p>
+          <RoomHeader gameLabel="Pictionary" code={code} shareUrl={share} />
           <PlayerList players={players} hostId={room.hostId} />
+          <PlayerManager
+            players={players}
+            hostId={room.hostId}
+            isHost={isHost}
+            onMakeHost={handOffHost}
+            onRemove={kick}
+            onAddLocal={addPhonelessPlayer}
+          />
           {isHost && <Button onClick={() => startRound(uid)} style={{ marginTop: 18 }}>Start drawing</Button>}
           <ErrorText>{error}</ErrorText>
         </div>
@@ -214,8 +238,15 @@ function PictionaryApp({ uid, name }: { uid: string; name: string }) {
             <Button ghost small onClick={leave}>Leave</Button>
           </div>
           {isArtist && myWord && <div className="pg-word-banner">Draw: {myWord.word}</div>}
-          {!isArtist && <div className="pg-word-banner">{players.find((p) => p.id === artistId)?.name ?? 'Someone'} is drawing…</div>}
-          <Canvas code={code} round={round} canDraw={isArtist} />
+          {!isArtist && isHost && artistHasNoDevice && localArtistWord && (
+            <div className="pg-word-banner">
+              {players.find((p) => p.id === artistId)?.name}'s word (they have no device): {localArtistWord.word}
+            </div>
+          )}
+          {!isArtist && !(isHost && artistHasNoDevice) && (
+            <div className="pg-word-banner">{players.find((p) => p.id === artistId)?.name ?? 'Someone'} is drawing...</div>
+          )}
+          <Canvas code={code} round={round} canDraw={isArtist || (isHost && artistHasNoDevice)} />
           {!isArtist && (
             <div className="pg-guess-row">
               <input value={guess} onChange={(e) => setGuess(e.target.value)} placeholder="Shout it out, then type it here" onKeyDown={(e) => e.key === 'Enter' && submitGuess()} />

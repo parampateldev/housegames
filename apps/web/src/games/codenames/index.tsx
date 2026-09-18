@@ -1,12 +1,14 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams, Link } from 'react-router-dom';
-import { Button, Card, Field, TextInput, ErrorText, PlayerList, useToast } from '@ui/index';
+import {
+  Button, Card, Field, TextInput, ErrorText, PlayerList, useToast, RoomHeader, PlayerManager,
+} from '@ui/index';
 import { RequireIdentity } from '../../auth/RequireIdentity';
-import { randomRoomCode, isValidRoomCode } from '@fb/index';
+import { randomRoomCode, isValidRoomCode, makeHost, addLocalPlayer } from '@fb/index';
 import {
   createCNRoom, joinCNRoom, watchCNRoom, joinTeam, becomeSpymaster, startCNGame, giveClue,
   queueGuess, resolveGuess, clearGuessVote, watchGuessVotes, endTurn, leaveCNRoom, watchMyKey,
-  type CNRoom, type CNKeySecret,
+  kickCNPlayer, type CNRoom, type CNKeySecret, type CNPlayer,
 } from './firebase';
 import type { TeamColor } from './game';
 import './codenames.css';
@@ -32,12 +34,25 @@ function CNApp({ uid, name }: { uid: string; name: string }) {
   const [room, setRoom] = useState<CNRoom | null>(null);
   const [error, setError] = useState('');
   const [key, setKey] = useState<CNKeySecret | null>(null);
+  const [localSpyKey, setLocalSpyKey] = useState<CNKeySecret | null>(null);
   const [votes, setVotes] = useState<Record<string, string>>({});
   const [clueWord, setClueWord] = useState('');
   const [clueNumber, setClueNumber] = useState(1);
 
   const isHost = room?.hostId === uid;
   const fail = (e: unknown) => setError(e instanceof Error ? e.message : String(e));
+  const share = code ? `${location.origin}/housegames/codenames/${code}` : '';
+
+  // A spymaster added as a local (phoneless) player has no session of their
+  // own, so the host's client watches that player's key directly, the host
+  // already has standing read access to any player's secret (see secrets.ts).
+  const currentSpymasterUid = room ? (room.settings.turn === 'red' ? room.settings.redSpymaster : room.settings.blueSpymaster) : null;
+  const hostControllingLocalSpymaster = isHost && Boolean(currentSpymasterUid?.startsWith('local-'));
+
+  useEffect(() => {
+    if (hostControllingLocalSpymaster && currentSpymasterUid && code) return watchMyKey(code, currentSpymasterUid, setLocalSpyKey);
+    setLocalSpyKey(null);
+  }, [hostControllingLocalSpymaster, currentSpymasterUid, code]);
 
   useEffect(() => {
     if (screen !== 'room' || !code) return;
@@ -134,7 +149,15 @@ function CNApp({ uid, name }: { uid: string; name: string }) {
     return (
       <main>{Header}
         <Card>
-          <div className="hg-eyebrow">Room {code}</div>
+          <RoomHeader gameLabel="Codenames" code={code} shareUrl={share} />
+          <PlayerManager
+            players={players}
+            hostId={room.hostId}
+            isHost={isHost}
+            onMakeHost={(targetUid) => makeHost('codenames', code, uid, targetUid).catch(fail)}
+            onRemove={(targetUid) => kickCNPlayer(code, uid, targetUid).catch(fail)}
+            onAddLocal={(localName) => addLocalPlayer<CNPlayer>('codenames', code, uid, localName, (id, n) => ({ id, name: n, team: null, spymaster: false })).catch(fail)}
+          />
           <h2>Pick a team</h2>
           <div className="team-pick">
             <div className="team-card red">
@@ -161,12 +184,15 @@ function CNApp({ uid, name }: { uid: string; name: string }) {
     );
   }
 
+  const canSeeKey = isSpymaster || hostControllingLocalSpymaster;
+  const effectiveKey = isSpymaster ? key : localSpyKey;
+
   const Board = (
     <div className="board">
       {room.settings.words.map((word, i) => {
         const revealed = room.settings.revealed[i];
         const revealedColor = room.settings.revealedColors[i];
-        const spyColor = isSpymaster && key && !revealed ? key.key[i] : null;
+        const spyColor = canSeeKey && effectiveKey && !revealed ? effectiveKey.key[i] : null;
         const cls = ['cell', revealed && revealedColor && `revealed ${revealedColor}`, spyColor && `spy-${spyColor}`].filter(Boolean).join(' ');
         return (
           <button
@@ -201,8 +227,9 @@ function CNApp({ uid, name }: { uid: string; name: string }) {
           <>
             {room.settings.clueWord && <p className="hg-note">Clue: <b>{room.settings.clueWord}</b> ({room.settings.clueNumber}), {room.settings.guessesLeft} guesses left</p>}
             {Board}
-            {isSpymaster && room.phase === 'clue' && (
+            {(isSpymaster || hostControllingLocalSpymaster) && room.phase === 'clue' && (
               <div className="clue-form">
+                {hostControllingLocalSpymaster && <p className="hg-note">Giving the clue for {players.find((p) => p.id === currentSpymasterUid)?.name}.</p>}
                 <TextInput placeholder="Clue word" value={clueWord} onChange={(e) => setClueWord(e.target.value)} />
                 <input type="number" min={0} max={9} value={clueNumber} onChange={(e) => setClueNumber(+e.target.value)} />
                 <Button disabled={!clueWord.trim()} onClick={() => giveClue(code, room.hostId, clueWord.trim(), clueNumber).then(() => setClueWord(''))}>Give clue</Button>

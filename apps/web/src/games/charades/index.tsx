@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams, Link } from 'react-router-dom';
-import { Button, Card, Field, TextInput, ErrorText, PlayerList, Timer, useToast, QR } from '@ui/index';
+import { Button, Card, Field, TextInput, ErrorText, PlayerList, Timer, RoomHeader, PlayerManager, useToast } from '@ui/index';
 import { RequireIdentity } from '../../auth/RequireIdentity';
-import { randomRoomCode, isValidRoomCode, saveSettings } from '@fb/index';
+import { randomRoomCode, isValidRoomCode, saveSettings, makeHost, addLocalPlayer } from '@fb/index';
 import {
   createCharadesRoom, joinCharadesRoom, watchCharadesRoom, watchMyWord,
   startActing, markCorrect, endRound, backToLobby, setTeam,
@@ -31,6 +31,9 @@ function App({ uid, name }: { uid: string; name: string }) {
   const [error, setError] = useState('');
   const fail = (e: unknown) => setError(e instanceof Error ? e.message : String(e));
   const isHost = room?.hostId === uid;
+  const actorId = room?.settings?.actorId ?? '';
+  const actorHasNoDevice = actorId.startsWith('local-');
+  const [localActorWord, setLocalActorWord] = useState<string | null>(null);
 
   useEffect(() => {
     if (screen !== 'room' || !code) return;
@@ -41,6 +44,14 @@ function App({ uid, name }: { uid: string; name: string }) {
     if (!code) return;
     return watchMyWord(code, uid, (s) => setWord(s?.word ?? null));
   }, [code, uid]);
+
+  // A local (phoneless) actor has no device to see their own word, so the
+  // host, who already has read access to any player's secret, sees it too
+  // and relays it for them.
+  useEffect(() => {
+    if (!code || !isHost || !actorHasNoDevice || room?.phase !== 'acting') { setLocalActorWord(null); return; }
+    return watchMyWord(code, actorId, (s) => setLocalActorWord(s?.word ?? null));
+  }, [code, isHost, actorHasNoDevice, actorId, room?.phase]);
 
   async function host() {
     setError('');
@@ -79,6 +90,19 @@ function App({ uid, name }: { uid: string; name: string }) {
   function leave() {
     if (room?.players?.[uid]) leaveCharadesRoom(code, uid).catch(() => {});
     setRoom(null); setCode(''); nav('/charades'); setScreen('choose');
+  }
+
+  async function handOffHost(targetUid: string) {
+    try { await makeHost('charades', code, uid, targetUid); } catch (e) { fail(e); }
+  }
+
+  async function kick(targetUid: string) {
+    if (!isHost) return;
+    try { await kickCharadesPlayer(code, uid, targetUid); } catch (e) { fail(e); }
+  }
+
+  async function addPhonelessPlayer(playerName: string) {
+    try { await addLocalPlayer('charades', code, uid, playerName, (id, n) => ({ id, name: n, team: 'B' as const, score: 0 })); } catch (e) { fail(e); }
   }
 
   const share = code ? `${location.origin}/housegames/charades/${code}` : '';
@@ -138,9 +162,9 @@ function App({ uid, name }: { uid: string; name: string }) {
     return (
       <main>{Header}
         <Card>
-          <div className="room-head"><div className="hg-eyebrow">Room {code}</div>{share && <QR url={share} size={110} />}</div>
-          <button className="mini" onClick={() => { navigator.clipboard.writeText(share); toast('Link copied'); }} style={{ marginBottom: 16 }}>Copy link</button>
+          <RoomHeader gameLabel="Charades" code={code} shareUrl={share} />
           <PlayerList players={players.map((p) => ({ ...p, name: `${p.name} (${p.team ?? '-'}) · ${p.score ?? 0}pt` }))} hostId={room.hostId} />
+          <PlayerManager players={players} hostId={room.hostId} isHost={isHost} onMakeHost={handOffHost} onRemove={kick} onAddLocal={addPhonelessPlayer} />
           <div className="actions"><Button onClick={() => setTeam(code, uid, 'A')}>Join Team A</Button><Button onClick={() => setTeam(code, uid, 'B')}>Join Team B</Button></div>
           {isHost && (
             <Field label="Category">
@@ -163,7 +187,13 @@ function App({ uid, name }: { uid: string; name: string }) {
       <main>{Header}
         <section className="center">
           <div className="hg-eyebrow">{s?.category}</div>
-          {isActor ? <div className="word-card">{word ?? '…'}</div> : <p className="hg-lead">{room.players?.[s?.actorId ?? '']?.name} is acting it out!</p>}
+          {isActor && <div className="word-card">{word ?? '…'}</div>}
+          {!isActor && isHost && actorHasNoDevice && localActorWord && (
+            <p className="hg-lead">{room.players?.[actorId]?.name}'s word (they have no device): <b>{localActorWord}</b></p>
+          )}
+          {!isActor && !(isHost && actorHasNoDevice) && (
+            <p className="hg-lead">{room.players?.[s?.actorId ?? '']?.name} is acting it out!</p>
+          )}
           {s?.roundEndsAt && <Timer endsAt={s.roundEndsAt} onDone={onTimerDone} />}
           <p className="hg-note">Correct: {s?.correctCount ?? 0}</p>
           {isHost && <div className="actions" style={{ justifyContent: 'center' }}><Button onClick={correct}>✓ Correct</Button><Button ghost onClick={() => onTimerDone()}>End round</Button></div>}

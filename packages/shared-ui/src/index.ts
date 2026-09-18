@@ -13,3 +13,4 @@ export { QR } from './QR';
 export { PlayerList } from './PlayerList';
 export { RoomHeader } from './RoomHeader';
 export { PlayerManager, type ManagedPlayer } from './PlayerManager';
+export { HelpModal } from './HelpModal';
