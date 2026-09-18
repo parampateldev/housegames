@@ -46,7 +46,7 @@ export function AccountScreen() {
             Check {user.email} for a verification link. Your account works right away either way.
           </p>
         )}
-        <Button wide onClick={() => nav('/')} style={{ marginTop: 18 }}>Continue to Huddl</Button>
+        <Button wide onClick={() => nav('/')} style={{ marginTop: 18 }}>Continue to Mingl</Button>
         <Button ghost wide onClick={() => signOut()} style={{ marginTop: 10 }}>Sign out</Button>
       </Card>
     );

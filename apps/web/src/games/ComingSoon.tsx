@@ -6,7 +6,7 @@ export function ComingSoon({ label }: { label: string }) {
   return (
     <Card>
       <BackLink onClick={() => nav('/')} />
-      <div className="hg-eyebrow">Huddl</div>
+      <div className="hg-eyebrow">Mingl</div>
       <h2 style={{ fontFamily: 'var(--hg-font-display)', fontStyle: 'italic' }}>{label} is on the way</h2>
       <p className="hg-note">This game hasn't landed yet, check back soon.</p>
       <Button onClick={() => nav('/')}>Back to all games</Button>
