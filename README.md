@@ -1,4 +1,4 @@
-# Mingl
+# Jestr
 
 Twelve live-multiplayer party games, one room code away. Live at [parampateldev.github.io/housegames](https://parampateldev.github.io/housegames/) (the repo and URL still say "housegames" -- see the branding note below).
 

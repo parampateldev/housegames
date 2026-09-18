@@ -7,10 +7,12 @@ was deployed, so nothing gets dropped under time pressure. Newest at top.
 - [x] Retheme to a Google Material 3 look (from the user's `quant-lab`
       reference), applied almost entirely through `packages/shared-ui/src/tokens.css`
       so no per-game CSS needed touching
-- [x] Renamed the site to **Mingl** (was briefly "Huddl", dropped after the
-      user flagged it collides with an existing sports-analytics company).
-      The GitHub repo and deployed URL path (`/housegames/`) are deliberately
-      left as-is, lower-risk than touching the live URL
+- [x] Renamed the site to **Jestr** (went through "Huddl", dropped for
+      colliding with an existing sports-analytics company, then "Mingl",
+      dropped by the user with no reason given, before landing on Jestr
+      from a shortlist). The GitHub repo and deployed URL path
+      (`/housegames/`) are deliberately left as-is, lower-risk than
+      touching the live URL
 - [x] Fixed the invisible "Copy link" button: `.hg-mini-btn`'s hardcoded
       ink-colored text was invisible against `.hg-share-bar`'s dark
       background, scoped a light-text override to that context
