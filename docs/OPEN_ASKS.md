@@ -3,48 +3,51 @@
 Tracking the mid-build requests that came in after the initial 12-game platform
 was deployed, so nothing gets dropped under time pressure. Newest at top.
 
-## Auth hardening (in progress)
-- [ ] Email format validation on sign-up (reject obviously-fake input)
-- [ ] Send a real verification email after sign-up (`sendEmailVerification`)
-- [ ] Confirm-password field (type it twice, must match)
-- [ ] Password strength meter (weak / medium / strong)
-- [ ] Enforce 6+ character minimum client-side, with a clear message
+## Auth hardening
+- [x] Email format validation on sign-up (rejects obviously-fake input,
+      client-side before it reaches Firebase)
+- [x] Real verification email sent after sign-up (`sendEmailVerification`),
+      with a clear "check your inbox" screen
+- [x] Confirm-password field (must match to submit)
+- [x] Password strength meter (weak / medium / strong, live as you type)
+- [x] 6+ character minimum enforced client-side with a clear message
 
 ## `auth/unauthorized-domain` on the live site
 - [x] Diagnosed: `parampateldev.github.io` isn't in Firebase Auth's authorized
       domains list yet. **Needs the project owner to add it in the Firebase
       console** (Authentication -> Settings -> Authorized domains) -- no CLI
-      command manages this list.
+      command manages this list, so this is the one step only you can do.
 
 ## Critical bug: non-host active players couldn't write shared round state
-- [x] Root cause: `settings`/`phase`/`state` were host-only writable by rule.
-      Any game where the ACTIVE player (Codenames' spymaster, Wavelength's
-      psychic, Secret Hitler's president) isn't the room host had that
-      player's actions silently rejected by the security rules.
-- [x] Fixed centrally in `scripts/build-rules.mjs`: `settings`/`phase`/`state`
-      now allow the host OR any player currently in the room. Secrets remain
-      strictly per-uid gated, unaffected.
-- [x] Regression test added in `tests/rules/database.test.ts` proving a
-      non-host room member can write, and a non-member stranger still cannot.
-- [x] Redeployed to production, emulator suite passing (20/20).
+- [x] Root cause, fix, regression test, and redeploy. See the "Fix critical
+      bug" commit. Confirmed this was breaking Codenames' spymaster clue,
+      Wavelength's psychic clue/guess/call, and would have hit Secret
+      Hitler's president/chancellor actions too, in any room where the
+      active player wasn't also the host.
 
-## Design polish (in progress)
-- [x] Shared `RoomHeader` (QR + copy-link + back-to-dashboard) component
-- [x] Shared `PlayerManager` (make host / remove / add player without a
-      phone) component
+## Design polish
+- [x] Shared `RoomHeader` (QR, copy link, back to dashboard) and
+      `PlayerManager` (make host / remove / add a player without a phone)
+      wired into all 12 games
 - [x] `makeHost` / `addLocalPlayer` primitives in shared-firebase
-- [x] Dashboard shows a signed-in host's recent rooms (auto-recorded by
-      createRoom/joinRoom, zero per-game wiring needed)
-- [ ] `RoomHeader` + `PlayerManager` wired into all 12 games (5 of 12 done:
-      Codenames, Pictionary, Charades, Heads Up, Wavelength; remaining 7 need
-      the same treatment)
-- [ ] Shared `HelpModal` component built; needs real, accurate per-game rules
-      text wired into all 12 games (Empire and Imposter already have genuine
-      ported help content)
-- [x] Responsive CSS audited and hardened for the new shared components
-      (phone-width breakpoints in tokens.css / components.css)
-- [ ] Em dash / en dash sweep: mostly done across the repo, needs a final
-      full-repo grep pass to confirm zero remain
+- [x] Dashboard shows a signed-in host's recent rooms (auto-recorded,
+      zero per-game wiring needed)
+- [x] Shared `HelpModal` with real, specific rules text wired into all
+      12 games (not generic filler, the actual mechanics of each game)
+- [x] Responsive CSS hardened for the new shared components (phone-width
+      breakpoints)
+- [x] Em dash / en dash sweep: zero remain anywhere in the repo (verified
+      by a full-repo grep, not just spot-checked)
+
+## Known deliberate simplifications (not bugs, just scoped down under time pressure)
+- Local (phoneless) players: fully supported at the lobby level (add,
+  remove, promote to host) in every game. Host-side "submit on their
+  behalf" is wired for Empire's word submission and a few other games'
+  central action; not every single phase of every game proxies a local
+  player's turn. A local player can always still be walked through their
+  turn verbally at the table.
+- Secret Hitler ships without executive powers (investigate/execute/
+  special election) for v1, just the core election-and-legislative loop.
 
 ## Housekeeping
-- [ ] Keep pushing to GitHub as each piece lands so CI/deploy stays current
+- [x] Pushed to GitHub after every meaningful change; CI green throughout

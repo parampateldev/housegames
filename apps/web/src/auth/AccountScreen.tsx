@@ -34,7 +34,6 @@ export function AccountScreen() {
   const [name, setName] = useState('');
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
-  const [justSignedUp, setJustSignedUp] = useState(false);
 
   if (user && !user.isAnonymous) {
     return (
@@ -44,10 +43,11 @@ export function AccountScreen() {
         <p className="hg-note">{user.displayName ?? user.email}</p>
         {!user.emailVerified && user.email && (
           <p className="hg-note" style={{ color: 'var(--hg-highlight)' }}>
-            Check {user.email} for a verification link.
+            Check {user.email} for a verification link. Your account works right away either way.
           </p>
         )}
-        <Button ghost onClick={() => signOut().then(() => nav('/'))}>Sign out</Button>
+        <Button wide onClick={() => nav('/')} style={{ marginTop: 18 }}>Continue to Housegames</Button>
+        <Button ghost wide onClick={() => signOut()} style={{ marginTop: 10 }}>Sign out</Button>
       </Card>
     );
   }
@@ -74,27 +74,17 @@ export function AccountScreen() {
     try {
       if (mode === 'in') {
         await signInEmail(email, password);
-        nav('/');
       } else {
         await signUpEmail(email, password, name.trim());
-        setJustSignedUp(true);
       }
+      // Signing in/up flips `user` via the auth listener, which re-renders
+      // this component into the "You're signed in" branch above, so there's
+      // nothing further to do here.
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Something went wrong');
     } finally {
       setBusy(false);
     }
-  }
-
-  if (justSignedUp) {
-    return (
-      <Card>
-        <div className="hg-eyebrow">Almost there</div>
-        <h2 style={{ fontFamily: 'var(--hg-font-display)', fontStyle: 'italic' }}>Check your email</h2>
-        <p className="hg-note">We sent a verification link to {email}. Your account works right away, verifying just confirms it's really you.</p>
-        <Button wide onClick={() => nav('/')} style={{ marginTop: 18 }}>Continue to Housegames</Button>
-      </Card>
-    );
   }
 
   return (
@@ -119,25 +109,25 @@ export function AccountScreen() {
 
       {mode === 'up' && (
         <Field label="Name">
-          <TextInput value={name} onChange={(e) => setName(e.target.value)} placeholder="Your name" />
+          <TextInput value={name} onChange={(e) => { setName(e.target.value); setError(''); }} placeholder="Your name" />
         </Field>
       )}
       <Field label="Email">
         <TextInput
           type="email"
           value={email}
-          onChange={(e) => setEmail(e.target.value)}
+          onChange={(e) => { setEmail(e.target.value); setError(''); }}
           placeholder="you@example.com"
           onBlur={() => { if (email && !isPlausibleEmail(email)) setError('That doesn\'t look like a real email address'); }}
         />
       </Field>
       <Field label="Password">
-        <TextInput type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="At least 6 characters" minLength={6} />
+        <TextInput type="password" value={password} onChange={(e) => { setPassword(e.target.value); setError(''); }} placeholder="At least 6 characters" minLength={6} />
       </Field>
       {mode === 'up' && <StrengthMeter password={password} />}
       {mode === 'up' && (
         <Field label="Confirm password">
-          <TextInput type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} placeholder="Type it again" />
+          <TextInput type="password" value={confirmPassword} onChange={(e) => { setConfirmPassword(e.target.value); setError(''); }} placeholder="Type it again" />
         </Field>
       )}
       <ErrorText>{error}</ErrorText>
