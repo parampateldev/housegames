@@ -1,31 +1,36 @@
 .hg-btn {
   border: 0;
-  background: var(--hg-ink);
+  background: var(--hg-rust);
   color: #fff;
   padding: 16px 24px;
   border-radius: 999px;
-  font-weight: 600;
+  font-weight: 500;
   font-family: var(--hg-font-body);
   font-size: 15px;
   cursor: pointer;
+  transition: background .15s, box-shadow .15s;
 }
-.hg-btn:disabled { opacity: .35; cursor: not-allowed; }
-.hg-btn.hg-ghost { background: transparent; color: inherit; border: 1px solid currentColor; }
+.hg-btn:hover:not(:disabled) { background: var(--hg-rust-hover); box-shadow: var(--hg-elevation-1); }
+.hg-btn:disabled { opacity: .38; cursor: not-allowed; }
+.hg-btn.hg-ghost { background: transparent; color: var(--hg-rust); border: 1px solid var(--hg-border-strong); }
+.hg-btn.hg-ghost:hover:not(:disabled) { background: var(--hg-bg-accent); box-shadow: none; }
 .hg-btn.hg-wide { width: 100%; }
 .hg-btn.hg-small { padding: 10px 18px; font-size: 13px; }
 
 .hg-input {
   width: 100%;
   border: 0;
-  border-bottom: 1px solid #a99b8e;
+  border-bottom: 1px solid var(--hg-border-strong);
   background: transparent;
   padding: 12px 0;
-  font-size: 19px;
+  font-size: 17px;
   outline: none;
   color: var(--hg-ink);
   font-family: var(--hg-font-body);
+  transition: border-color .15s;
 }
-.hg-input::placeholder { color: #b7ab9e; }
+.hg-input:focus { border-bottom-color: var(--hg-rust); }
+.hg-input::placeholder { color: var(--hg-muted-2); }
 .hg-field-label { display: block; font-size: 13px; margin: 18px 0 0; color: var(--hg-muted); }
 
 .hg-chip-row { display: flex; gap: 8px; flex-wrap: wrap; }
@@ -39,14 +44,14 @@
   font-family: var(--hg-font-body);
   cursor: pointer;
 }
-.hg-chip.on { background: var(--hg-ink); color: #fff; border-color: var(--hg-ink); }
+.hg-chip.on { background: var(--hg-rust); color: #fff; border-color: var(--hg-rust); }
 
 .hg-seg { display: inline-flex; border: 1px solid var(--hg-border-strong); border-radius: 999px; overflow: hidden; }
 .hg-seg button {
   border: 0; background: transparent; padding: 8px 16px; font-size: 13px;
   font-family: var(--hg-font-body); cursor: pointer; color: var(--hg-ink);
 }
-.hg-seg button.on { background: var(--hg-ink); color: #fff; }
+.hg-seg button.on { background: var(--hg-rust); color: #fff; }
 
 .hg-stepper { display: inline-flex; align-items: center; gap: 14px; }
 .hg-stepper button {

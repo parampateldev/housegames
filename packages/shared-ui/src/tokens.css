@@ -1,22 +1,27 @@
-/* Housegames design tokens, carried over verbatim from empire/imposter's
-   shared warm-editorial aesthetic. One visual world across all 12 games. */
+/* Huddl design tokens, Google Material 3 inspired: clean white surfaces,
+   Google's four-color accent system, Roboto everywhere, soft elevation
+   instead of hard offset shadows. One visual world across all 12 games.
+   Rebranded from Housegames' warm-editorial look on 2026-09-18. */
 :root {
-  --hg-bg: #f4eee5;
-  --hg-bg-accent: #e9cdb2;
-  --hg-ink: #1a1511;
-  --hg-rust: #bd3e29;
-  --hg-card: #fffaf3;
-  --hg-border: #d8cbbd;
-  --hg-border-strong: #cbbcad;
-  --hg-muted: #655c55;
-  --hg-muted-2: #8b7f75;
-  --hg-success: #28794b;
-  --hg-error: #a12e20;
-  --hg-highlight: #e5aa74;
-  --hg-imposter-red: #e0705a;
-  --hg-shadow-color: #c8b9a8;
-  --hg-font-body: 'DM Sans', system-ui, sans-serif;
-  --hg-font-display: 'Playfair Display', Georgia, serif;
+  --hg-bg: #f8f9fa;
+  --hg-bg-accent: #e8f0fe;
+  --hg-ink: #202124;
+  --hg-rust: #1a73e8;
+  --hg-rust-hover: #1557b0;
+  --hg-card: #ffffff;
+  --hg-border: #dadce0;
+  --hg-border-strong: #bdc1c6;
+  --hg-muted: #5f6368;
+  --hg-muted-2: #9aa0a6;
+  --hg-success: #34a853;
+  --hg-error: #ea4335;
+  --hg-highlight: #f9ab00;
+  --hg-imposter-red: #ea4335;
+  --hg-shadow-color: #e8eaed;
+  --hg-elevation-1: 0 1px 2px 0 rgba(60,64,67,.3), 0 1px 3px 1px rgba(60,64,67,.15);
+  --hg-elevation-2: 0 1px 3px 0 rgba(60,64,67,.3), 0 4px 8px 3px rgba(60,64,67,.15);
+  --hg-font-body: 'Roboto', 'Google Sans', system-ui, sans-serif;
+  --hg-font-display: 'Roboto', 'Google Sans', system-ui, sans-serif;
 }
 
 *, *::before, *::after { box-sizing: border-box; }
@@ -24,7 +29,7 @@
 body.hg {
   margin: 0;
   min-width: 320px;
-  background: radial-gradient(circle at 80% 15%, var(--hg-bg-accent) 0, transparent 30%), var(--hg-bg);
+  background: var(--hg-bg);
   color: var(--hg-ink);
   font-family: var(--hg-font-body);
   font-synthesis: none;
@@ -32,45 +37,49 @@ body.hg {
 
 .hg-eyebrow {
   text-transform: uppercase;
-  letter-spacing: .18em;
+  letter-spacing: .1em;
   font-size: 11px;
+  font-weight: 500;
   color: var(--hg-muted-2);
 }
 
 .hg-headline {
-  font-size: clamp(64px, 11vw, 150px);
-  line-height: .83;
-  letter-spacing: -.07em;
+  font-size: clamp(48px, 8vw, 96px);
+  line-height: .95;
+  letter-spacing: -.02em;
+  font-weight: 700;
   margin: 22px 0;
   text-wrap: balance;
 }
 .hg-headline em {
   font-family: var(--hg-font-display);
   color: var(--hg-rust);
-  font-weight: 600;
-  font-style: italic;
+  font-weight: 700;
+  font-style: normal;
 }
 
 .hg-lead {
-  font-size: clamp(17px, 2vw, 24px);
+  font-size: clamp(16px, 2vw, 20px);
   max-width: 600px;
   color: var(--hg-muted);
+  font-weight: 400;
 }
 
 .hg-card {
   width: min(640px, calc(100% - 32px));
   margin: 5vh auto;
   background: var(--hg-card);
-  padding: 44px;
+  padding: 32px;
   border: 1px solid var(--hg-border);
-  box-shadow: 15px 15px 0 var(--hg-shadow-color);
+  border-radius: 16px;
+  box-shadow: var(--hg-elevation-1);
 }
 
 .hg-error-text { color: var(--hg-error); font-size: 13px; margin-top: 10px; }
 .hg-note { color: var(--hg-muted-2); font-size: 13px; }
 
 @media (max-width: 700px) {
-  .hg-card { padding: 26px; box-shadow: 8px 8px 0 var(--hg-shadow-color); }
+  .hg-card { padding: 22px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
