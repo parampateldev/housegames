@@ -1,5 +1,4 @@
-/* Empire-specific visuals, scoped under .eg so they can never leak onto —
-   or be overridden by — another game's bespoke CSS sharing the same
+/* Empire-specific visuals, scoped under .eg so they can never leak onto, or be overridden by, another game's bespoke CSS sharing the same
    generic class names (.card, .player, .timer, etc. all recur across the
    12 games). Colors/fonts/spacing carried over from the original repo's
    src/styles.css, mapped onto the platform's shared --hg-* tokens. */

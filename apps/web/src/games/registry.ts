@@ -19,7 +19,7 @@ export const GAMES: GameEntry[] = [
   {
     slug: 'imposter',
     label: 'Imposter',
-    tagline: 'Everyone gets a secret word — except the imposter.',
+    tagline: 'Everyone gets a secret word, except the imposter.',
     minPlayers: 3,
     Component: lazy(() => import('./imposter')),
   },

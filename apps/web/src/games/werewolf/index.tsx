@@ -187,7 +187,7 @@ function WerewolfApp({ uid, name }: { uid: string; name: string }) {
             <span className="role-badge">{role ? ROLE_LABEL[role] : '…'}</span>
             <h2>Night {room.settings.round}</h2>
             {role === 'evil' && mySecret?.teammates && <p className="teammates">With you: {mySecret.teammates.join(', ') || 'no one else'}</p>}
-            {!alive && <p className="hg-note" style={{ color: '#fff' }}>You've been eliminated — watch how it plays out.</p>}
+            {!alive && <p className="hg-note" style={{ color: '#fff' }}>You've been eliminated, watch how it plays out.</p>}
             {alive && (role === 'evil' || role === 'doctor' || role === 'detective') && (
               <div style={{ marginTop: 20 }}>
                 <VoteGrid
@@ -214,7 +214,7 @@ function WerewolfApp({ uid, name }: { uid: string; name: string }) {
                 )}
               </div>
             )}
-            {alive && role === 'villager' && <p className="waiting-note">No action tonight — wait for dawn.</p>}
+            {alive && role === 'villager' && <p className="waiting-note">No action tonight, wait for dawn.</p>}
             {mySecret?.nightResult && mySecret.nightResult.round === room.settings.round - 1 && (
               <div className="investigate-result">Your last check: {players.find((p) => p.id === mySecret.nightResult!.targetUid)?.name} is {mySecret.nightResult.isEvil ? 'a WEREWOLF' : 'innocent'}.</div>
             )}
@@ -258,7 +258,7 @@ function WerewolfApp({ uid, name }: { uid: string; name: string }) {
         <Card>
           {room.players[uid]?.alive ? (
             <VoteGrid players={alivePlayers} selectedId={myVote} onVote={(id) => castVote(code, uid, id).catch(fail)} />
-          ) : <p className="hg-note">You're eliminated — watch the vote.</p>}
+          ) : <p className="hg-note">You're eliminated, watch the vote.</p>}
           <p className="waiting-note">{Object.keys(votes).length}/{alivePlayers.length} voted</p>
           {isHost && <Button wide onClick={() => resolveVote(code, uid).catch(fail)} style={{ marginTop: 16 }}>Resolve vote</Button>}
           <ErrorText>{error}</ErrorText>

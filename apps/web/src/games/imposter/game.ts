@@ -1,4 +1,4 @@
-// Ported from the original imposter repo's inline app.js — same word-pool,
+// Ported from the original imposter repo's inline app.js, same word-pool,
 // guess-matching and hint logic, unchanged.
 import wordsData from '../../../../../content/imposter-words.json';
 
@@ -74,7 +74,7 @@ export function shuffle<T>(arr: T[]): T[] {
 /**
  * Picks a word the room hasn't seen from this category set; reshuffles a
  * category only once it runs dry. Returns the updated `used` map rather
- * than mutating the input — callers persist it back to Firebase themselves.
+ * than mutating the input, callers persist it back to Firebase themselves.
  */
 export function pickWord(cats: string[], used: Record<string, string[]>): { cat: string; word: string; usedWords: Record<string, string[]> } {
   const avail = cats.filter((c) => CATS[c] && CATS[c].w.length - (used[c] || []).length > 0);

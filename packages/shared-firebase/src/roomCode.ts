@@ -1,4 +1,4 @@
-// Excludes 0/1/I/O/L — the same charset Empire uses, chosen so a spoken or
+// Excludes 0/1/I/O/L, the same charset Empire uses, chosen so a spoken or
 // handwritten room code is never ambiguous.
 const CHARSET = '23456789ABCDEFGHJKMNPQRSTUVWXYZ';
 

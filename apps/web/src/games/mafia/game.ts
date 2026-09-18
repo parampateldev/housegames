@@ -9,7 +9,7 @@ export type MafiaSettings = {
   winner: 'town' | 'evil' | null;
 };
 
-/** What a player's own secret holds — role stays here for the whole game;
+/** What a player's own secret holds, role stays here for the whole game;
  *  nightAction/nightResult get overwritten round to round. */
 export type MafiaSecret = {
   role: RoleId;
@@ -29,7 +29,7 @@ export function mkPlayer(id: string, name: string): MafiaPlayer {
  * Assembles the engine's NightActions from each acting player's own
  * independently-submitted secret. The pack's kill target is resolved by
  * plurality among however many evil members have voted so far (reusing
- * tallyDayVote — it's the same "most votes wins, tie = no result" shape).
+ * tallyDayVote, it's the same "most votes wins, tie = no result" shape).
  */
 export function buildNightActions(
   secrets: Record<string, MafiaSecret>,
@@ -64,7 +64,7 @@ export function buildNightActions(
  * True once every ALIVE mandatory acting role (evil, doctor, detective) has
  * submitted this round. The witch is excluded: both her save and poison are
  * genuinely optional each night, so requiring a submission from her would
- * let one disconnected/undecided witch stall the whole game — the host can
+ * let one disconnected/undecided witch stall the whole game, the host can
  * always resolve night manually once they judge it's time.
  */
 export function allNightActionsIn(

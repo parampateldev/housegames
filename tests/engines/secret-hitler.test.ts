@@ -11,7 +11,7 @@ describe('assignSecretHitlerRoles', () => {
     expect(() => assignSecretHitlerRoles(Array.from({ length: 11 }, (_, i) => `p${i}`))).toThrow();
   });
 
-  it('exactly one Hitler, correct fascist count, rest liberal — at every valid size', () => {
+  it('exactly one Hitler, correct fascist count, rest liberal, at every valid size', () => {
     const table: Record<number, number> = { 5: 1, 6: 1, 7: 2, 8: 2, 9: 3, 10: 3 };
     for (const [n, fascists] of Object.entries(table)) {
       const ids = Array.from({ length: Number(n) }, (_, i) => `p${i}`);

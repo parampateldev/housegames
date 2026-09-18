@@ -1,4 +1,4 @@
-// [left, right] concept pairs spanning a 0–100 spectrum.
+// [left, right] concept pairs spanning a 0-100 spectrum.
 export const SPECTRUMS: [string, string][] = [
   ['Cheap', 'Expensive'], ['Overrated', 'Underrated'], ['Boring', 'Exciting'], ['Cold', 'Hot'],
   ['Small', 'Large'], ['Quiet', 'Loud'], ['Ugly', 'Beautiful'], ['Simple', 'Complicated'],

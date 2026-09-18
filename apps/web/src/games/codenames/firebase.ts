@@ -14,7 +14,7 @@ export type CNPhase = 'lobby' | 'clue' | 'guessing' | 'gameOver';
 export type CNSettings = {
   words: string[];
   revealed: boolean[];
-  /** Once a cell is revealed, its color becomes public knowledge — this is what everyone (not just spymasters) sees for it. */
+  /** Once a cell is revealed, its color becomes public knowledge, this is what everyone (not just spymasters) sees for it. */
   revealedColors: (CellColor | null)[];
   turn: TeamColor;
   clueWord: string | null;
@@ -23,7 +23,7 @@ export type CNSettings = {
   winner: TeamColor | null;
   redSpymaster: string | null;
   blueSpymaster: string | null;
-  // The host (and everyone else) never holds the color key — only the two
+  // The host (and everyone else) never holds the color key, only the two
   // spymasters do (see CNKeySecret). So "words exhausted" win-checking runs
   // on these two public counters instead, each decremented by whichever
   // spymaster resolves a guess for their own team (see resolveGuess).
@@ -84,7 +84,7 @@ export async function startCNGame(code: string, hostId: string) {
   await setPhase(NS, code, hostId, 'clue');
 }
 
-/** The current team's spymaster gives a clue — this is public info. */
+/** The current team's spymaster gives a clue, this is public info. */
 export async function giveClue(code: string, hostId: string, word: string, number: number) {
   const room = await getRoom(code);
   if (!room) return;
@@ -95,10 +95,10 @@ export async function giveClue(code: string, hostId: string, word: string, numbe
 /**
  * An operative taps a word: their client can't resolve its color itself (it
  * doesn't have the key), so it just queues the index on a self-writable
- * path. The host's client reactively picks this up and resolves it — same
+ * path. The host's client reactively picks this up and resolves it, same
  * host-broker pattern every other room mutation in this app uses. The host
  * is allowed to READ the key here via the same blanket "host can read any
- * uid's secret" rule every game already relies on (see secrets.ts) — the
+ * uid's secret" rule every game already relies on (see secrets.ts), the
  * key still only ever gets WRITTEN to the two spymasters' own paths.
  */
 export async function queueGuess(code: string, uid: string, index: number) {

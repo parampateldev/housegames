@@ -171,7 +171,7 @@ function App({ uid, name }: { uid: string; name: string }) {
           <div className="hg-eyebrow">{s?.category}</div>
           {isGuesser ? (
             <div className="guesser-card">
-              <p className="hg-note">Everyone else can see the word — get them to describe it!</p>
+              <p className="hg-note">Everyone else can see the word, get them to describe it!</p>
               <div className="tap-buttons">
                 <Button onClick={() => tap(true)}>✓ Correct</Button>
                 <Button ghost onClick={() => tap(false)}>✗ Pass</Button>

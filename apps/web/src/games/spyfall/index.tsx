@@ -81,7 +81,7 @@ function App({ uid, name }: { uid: string; name: string }) {
 
   // The host can read every player's secret (rules grant host-only reads on
   // any uid's secret path), so resolution fetches all of them rather than
-  // relying on the host's OWN secret — which has no `location` at all in
+  // relying on the host's OWN secret, which has no `location` at all in
   // the one case that matters most: the host themselves being the spy.
   async function resolveVote() {
     if (!room || !room.votes) return;
@@ -114,7 +114,7 @@ function App({ uid, name }: { uid: string; name: string }) {
         <section className="hero">
           <div className="hg-eyebrow">Find the fake</div>
           <h1 className="hg-headline">Spy<em>fall</em></h1>
-          <p className="hg-lead">Everyone knows the location — except the spy. Ask questions. Don't give it away.</p>
+          <p className="hg-lead">Everyone knows the location, except the spy. Ask questions. Don't give it away.</p>
           <div className="actions">
             <Button onClick={host}>Host a game</Button>
             <Button ghost onClick={() => setScreen('joinForm')}>Join with code</Button>
@@ -165,7 +165,7 @@ function App({ uid, name }: { uid: string; name: string }) {
           <PlayerList players={players} hostId={room.hostId} />
           {isHost && (
             <>
-              <Field label={`Discussion timer — ${timerMinutes} min`}>
+              <Field label={`Discussion timer, ${timerMinutes} min`}>
                 <input type="range" min={4} max={15} value={timerMinutes} onChange={(e) => setTimerMinutes(+e.target.value)} style={{ width: '100%', accentColor: 'var(--hg-rust)' }} />
               </Field>
               <Button wide disabled={players.length < 3} onClick={startRound} style={{ marginTop: 16 }}>Deal & start</Button>

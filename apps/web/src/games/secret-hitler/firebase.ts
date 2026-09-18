@@ -67,7 +67,7 @@ export async function startGame(code: string, hostId: string) {
   const room = await getRoom(code);
   if (room?.hostId !== hostId) throw new Error('Only the host can start');
   const playerIds = Object.keys(room.players ?? {});
-  if (playerIds.length < 5 || playerIds.length > 10) throw new Error('Secret Hitler needs 5–10 players');
+  if (playerIds.length < 5 || playerIds.length > 10) throw new Error('Secret Hitler needs 5-10 players');
 
   const { roles, teamSeenBy } = assignSecretHitlerRoles(playerIds);
   await Promise.all(playerIds.map((uid) => setSecret<SHRoleSecret>(NS, code, uid, {
@@ -96,7 +96,7 @@ export async function nominateChancellor(code: string, hostId: string, nomineeId
 /**
  * Reused across three different moments (ja/nein vote, president's nominee
  * pick, president/chancellor's discard index) since all three are just "one
- * player writes one string to their own uid, host reacts to it" — same
+ * player writes one string to their own uid, host reacts to it", same
  * shape, same rule (`votes/$uid` is self-writable), no reason for three
  * separate paths.
  */

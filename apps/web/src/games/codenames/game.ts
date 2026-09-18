@@ -1,6 +1,6 @@
-// Pure logic for Codenames — board setup and win checks. The one rule that
+// Pure logic for Codenames, board setup and win checks. The one rule that
 // matters: the color KEY this module produces must only ever be written to
-// the two spymasters' own secret paths (see firebase.ts) — never public,
+// the two spymasters' own secret paths (see firebase.ts), never public,
 // never host-only-shared, never even transiently. This file just computes
 // values; it has no idea where they end up, that discipline lives in
 // firebase.ts.
@@ -43,7 +43,7 @@ export function remainingForTeam(key: CellColor[], revealed: boolean[], team: Te
   return key.filter((c, i) => c === team && !revealed[i]).length;
 }
 
-/** Call after every reveal that ISN'T the assassin — checks the "ran out of words" win condition. */
+/** Call after every reveal that ISN'T the assassin, checks the "ran out of words" win condition. */
 export function checkWordsExhaustedWinner(key: CellColor[], revealed: boolean[]): TeamColor | null {
   if (remainingForTeam(key, revealed, 'red') === 0) return 'red';
   if (remainingForTeam(key, revealed, 'blue') === 0) return 'blue';

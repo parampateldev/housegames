@@ -43,7 +43,7 @@ export function AccountScreen() {
       <BackLink onClick={() => nav('/')} />
       <div className="hg-eyebrow">Host account</div>
       <h2 style={{ fontFamily: 'var(--hg-font-display)', fontStyle: 'italic' }}>Sign in to host</h2>
-      <p className="hg-note">Only hosts need an account — everyone else joins as a guest with just a name.</p>
+      <p className="hg-note">Only hosts need an account, everyone else joins as a guest with just a name.</p>
 
       <Button
         wide

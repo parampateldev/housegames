@@ -12,7 +12,7 @@ describe('nextGuesser', () => {
   });
 });
 
-describe('audienceFor — the inverted-secrecy contract', () => {
+describe('audienceFor, the inverted-secrecy contract', () => {
   it('includes everyone except the guesser', () => {
     expect(audienceFor(players, 'b').sort()).toEqual(['a', 'c']);
   });

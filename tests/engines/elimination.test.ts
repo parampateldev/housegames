@@ -35,7 +35,7 @@ describe('assignRoles', () => {
   });
 });
 
-describe('resolveNight — the order-of-operations bug class', () => {
+describe('resolveNight, the order-of-operations bug class', () => {
   const roles: Record<string, RoleId> = { mafia1: 'evil', doc: 'doctor', vic: 'villager', det: 'detective' };
 
   it('a doctor save on the exact target the pack chose cancels the kill', () => {

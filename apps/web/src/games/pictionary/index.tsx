@@ -140,7 +140,7 @@ function PictionaryApp({ uid, name }: { uid: string; name: string }) {
   function submitGuess() {
     if (!myWord && guess.trim() && room?.phase === 'drawing') {
       // Non-artist guessing: we don't know the word client-side (by design),
-      // so just surface it to the host/artist to confirm out loud — this is
+      // so just surface it to the host/artist to confirm out loud, this is
       // a casual party game, not an anti-cheat guessing engine.
       toast(`Guessed: "${guess.trim()}"`);
       setGuess('');

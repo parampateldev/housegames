@@ -19,7 +19,7 @@ function drawStroke(ctx: CanvasRenderingContext2D, stroke: Stroke, w: number, h:
 }
 
 /** Shared drawing surface: replays round history on mount/round-change, and
- * lets the artist draw — buffering points locally and writing one compact
+ * lets the artist draw, buffering points locally and writing one compact
  * stroke to Firebase per pointerup (see game.ts's decimateStroke). */
 export function Canvas({ code, round, canDraw }: { code: string; round: number; canDraw: boolean }) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
