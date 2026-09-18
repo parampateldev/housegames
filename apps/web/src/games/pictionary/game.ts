@@ -2,7 +2,17 @@ import { WORD_BANK, CATEGORIES } from './words';
 
 export type Phase = 'lobby' | 'drawing' | 'roundEnd' | 'finished';
 export type Player = { id: string; name: string; score: number; connected?: boolean };
-export type Settings = { roundSeconds: number; targetScore: number };
+// round/artistId/lastWord live here (not as separate room fields) because
+// only hostId/phase/createdAt/settings/players/votes/privilegedUid have
+// per-field write rules — see firebase.ts's note on the strokes path for
+// the same constraint applied to a case that couldn't reuse settings.
+export type Settings = {
+  roundSeconds: number;
+  targetScore: number;
+  round: number;
+  artistId: string;
+  lastWord?: string;
+};
 export type StrokePoint = [number, number];
 export type Stroke = { seq: number; points: StrokePoint[]; color: string; width: number };
 
