@@ -5,20 +5,105 @@ import {
 } from '@ui/index';
 import { randomRoomCode, isValidRoomCode, makeHost, addLocalPlayer } from '@fb/index';
 import { RequireIdentity } from '../../auth/RequireIdentity';
+import { MAFIA_ROLE_PRESETS, ROLE_BEHAVIOR_LABEL, type RoleDef, type RoleBehavior, type Team } from '@engines/elimination/index';
 import {
   createMafiaRoom, joinMafiaRoom, watchMafiaRoom, watchMySecret, watchLocalSecrets,
-  assignRolesAndStartNight, submitNightAction, submitVigilanteShot,
+  assignRolesAndStartNight, submitNightAction,
   resolveNightPhase, startVote, castVote, watchVotes, resolveVote,
-  leaveMafiaRoom, kickPlayer, recommendedMafiaOptions, type MafiaRoom, type MafiaRoleOptions,
+  leaveMafiaRoom, kickPlayer, recommendedMafiaRoles, validateRoleComposition, type MafiaRoom,
 } from './firebase';
 import type { MafiaSecret } from './game';
 import './mafia.css';
 
 const CODE_LENGTH = 5;
-const ROLE_LABEL: Record<string, string> = { evil: 'Mafia', doctor: 'Doctor', detective: 'Detective', vigilante: 'Vigilante', villager: 'Villager' };
+const CREATABLE_BEHAVIORS: RoleBehavior[] = ['kill', 'investigate', 'protect', 'solo-kill', 'extra-vote', 'none'];
 
 export default function MafiaGame() {
   return <div className="mg"><RequireIdentity>{(identity) => <MafiaApp uid={identity.uid} name={identity.name} />}</RequireIdentity></div>;
+}
+
+function RoleEditor({ roles, onChange, playerCount }: { roles: RoleDef[]; onChange: (r: RoleDef[]) => void; playerCount: number }) {
+  const [creating, setCreating] = useState(false);
+  const [draftName, setDraftName] = useState('');
+  const [draftTeam, setDraftTeam] = useState<Team>('town');
+  const [draftBehavior, setDraftBehavior] = useState<RoleBehavior>('none');
+
+  const total = roles.reduce((s, r) => s + r.count, 0);
+  const error = validateRoleComposition(playerCount, roles);
+  const availablePresets = MAFIA_ROLE_PRESETS.filter((p) => !roles.some((r) => r.id.toLowerCase() === p.id.toLowerCase()));
+
+  const updateCount = (index: number, delta: number) => {
+    const next = roles.map((r, i) => (i === index ? { ...r, count: Math.max(0, r.count + delta) } : r));
+    onChange(next.filter((r) => r.count > 0));
+  };
+  const removeRole = (index: number) => onChange(roles.filter((_, i) => i !== index));
+  const addPreset = (presetId: string) => {
+    const preset = MAFIA_ROLE_PRESETS.find((p) => p.id === presetId);
+    if (preset) onChange([...roles, { id: preset.id, team: preset.team, behaviors: preset.behaviors, count: 1 }]);
+  };
+  const confirmCustomRole = () => {
+    const name = draftName.trim();
+    if (!name) return;
+    onChange([...roles, { id: name, team: draftTeam, behaviors: [draftBehavior], count: 1 }]);
+    setDraftName(''); setDraftTeam('town'); setDraftBehavior('none'); setCreating(false);
+  };
+
+  return (
+    <div className="hg-player-manager">
+      <h3>Roles</h3>
+      <ul className="hg-manage-list" style={{ marginTop: 10 }}>
+        {roles.map((r, i) => (
+          <li key={`${r.id}_${i}`}>
+            <span>
+              <b>{r.id}</b>{' '}
+              <span className="hg-note" style={{ fontSize: 12 }}>
+                ({r.team === 'evil' ? 'mafia team' : 'town team'} · {ROLE_BEHAVIOR_LABEL[r.behaviors[0]] ?? 'no powers'})
+              </span>
+            </span>
+            <span className="hg-row">
+              <div className="hg-stepper">
+                <button type="button" onClick={() => updateCount(i, -1)}>−</button>
+                <span className="val">{r.count}</span>
+                <button type="button" onClick={() => updateCount(i, 1)}>+</button>
+              </div>
+              <button type="button" className="hg-mini-btn hg-mini-danger" onClick={() => removeRole(i)}>Remove</button>
+            </span>
+          </li>
+        ))}
+      </ul>
+
+      {availablePresets.length > 0 && (
+        <div className="hg-chip-row" style={{ marginTop: 14 }}>
+          {availablePresets.map((p) => (
+            <button key={p.id} type="button" className="hg-chip" onClick={() => addPreset(p.id)} title={p.description}>+ {p.id}</button>
+          ))}
+        </div>
+      )}
+
+      {!creating ? (
+        <Button ghost small onClick={() => setCreating(true)} style={{ marginTop: 14 }}>+ Create a role</Button>
+      ) : (
+        <div className="hg-player-manager-panel" style={{ marginTop: 14 }}>
+          <input className="hg-input" placeholder="Role name (e.g. Bodyguard)" value={draftName} onChange={(e) => setDraftName(e.target.value)} />
+          <div className="hg-seg" style={{ marginTop: 14 }}>
+            <button type="button" className={draftTeam === 'town' ? 'on' : ''} onClick={() => setDraftTeam('town')}>Town team</button>
+            <button type="button" className={draftTeam === 'evil' ? 'on' : ''} onClick={() => setDraftTeam('evil')}>Mafia team</button>
+          </div>
+          <select className="hg-input" style={{ marginTop: 14 }} value={draftBehavior} onChange={(e) => setDraftBehavior(e.target.value as RoleBehavior)}>
+            {CREATABLE_BEHAVIORS.map((b) => <option key={b} value={b}>{ROLE_BEHAVIOR_LABEL[b]}</option>)}
+          </select>
+          <div className="hg-row" style={{ marginTop: 16 }}>
+            <Button small onClick={confirmCustomRole} disabled={!draftName.trim()}>Add role</Button>
+            <Button ghost small onClick={() => setCreating(false)}>Cancel</Button>
+          </div>
+        </div>
+      )}
+
+      <p className="hg-note" style={{ marginTop: 12 }}>
+        {error ?? `${total}/${playerCount} players assigned. Ready to start.`}
+      </p>
+    </div>
+  );
 }
 
 function MafiaApp({ uid, name }: { uid: string; name: string }) {
@@ -36,7 +121,7 @@ function MafiaApp({ uid, name }: { uid: string; name: string }) {
   const [error, setError] = useState('');
   const [nightTarget, setNightTarget] = useState('');
   const [localSecrets, setLocalSecrets] = useState<Record<string, MafiaSecret>>({});
-  const [roleOptions, setRoleOptions] = useState<MafiaRoleOptions | null>(null);
+  const [roleConfig, setRoleConfig] = useState<RoleDef[] | null>(null);
 
   const isHost = room?.hostId === uid;
   const fail = (e: unknown) => setError(e instanceof Error ? e.message : String(e));
@@ -97,11 +182,11 @@ function MafiaApp({ uid, name }: { uid: string; name: string }) {
       <Link to="/" style={{ fontWeight: 700, textDecoration: 'none', color: 'inherit', textTransform: 'uppercase', letterSpacing: '.14em', fontSize: 12 }}>Mafia</Link>
       <HelpModal title="Mafia">
         <ol>
-          <li><b>Roles are dealt in secret.</b> A minority of players are secretly Mafia. Everyone else is an innocent Villager, unless the host turns on extra roles: a Doctor who can save someone each night, a Detective who can investigate one player each night, and a Vigilante with one bullet for the whole game. The host sets the mafia count and which of these are in play from the lobby.</li>
-          <li><b>Night falls.</b> The Mafia silently choose someone to eliminate. The Doctor may protect one player. The Detective learns whether one player is Mafia or innocent. The Vigilante may take their one shot, now or later.</li>
-          <li><b>Day breaks.</b> Whoever died overnight is announced. Everyone discusses who they suspect, then votes to eliminate one player.</li>
+          <li><b>Roles are dealt in secret.</b> The host builds the roster from the lobby: how many Mafia, and which town roles are in play (Police, Doctor, Vigilante, Mayor, Townie, or roles the host makes up themselves). Everyone gets exactly one role, kept secret the whole game.</li>
+          <li><b>Night falls.</b> The Mafia silently agree on someone to eliminate. A Doctor-type role may protect one player. A Police-type role learns whether one player is Mafia or innocent. A Vigilante-type role may take their one shot, now or later.</li>
+          <li><b>Day breaks.</b> Whoever died overnight is announced. Everyone discusses who they suspect, then votes to eliminate one player. A Mayor-type role's vote counts twice.</li>
           <li><b>The accused is out</b>, Mafia or innocent. Repeat night and day.</li>
-          <li><b>Win it.</b> The Village wins once every Mafia member is gone. The Mafia win once they equal or outnumber the Village.</li>
+          <li><b>Win it.</b> The town wins once every Mafia member is gone. The Mafia win once they equal or outnumber the town.</li>
         </ol>
       </HelpModal>
     </header>
@@ -157,11 +242,9 @@ function MafiaApp({ uid, name }: { uid: string; name: string }) {
   const alivePlayers = players.filter((p) => p.alive);
 
   if (room.phase === 'lobby') {
-    const opts = roleOptions ?? recommendedMafiaOptions(Math.max(players.length, 4));
-    const namedCount = opts.evilCount + (opts.hasDetective ? 1 : 0) + (opts.hasDoctor ? 1 : 0) + (opts.hasVigilante ? 1 : 0);
-    const maxEvil = Math.max(1, Math.ceil(players.length / 2) - 1);
-    const tooManyRoles = players.length >= 4 && namedCount >= players.length;
-    const updateOpts = (patch: Partial<MafiaRoleOptions>) => setRoleOptions({ ...opts, ...patch });
+    const displayCount = Math.max(players.length, 4);
+    const roles = roleConfig ?? recommendedMafiaRoles(displayCount);
+    const startError = players.length < 4 ? 'Need at least 4 players' : validateRoleComposition(players.length, roles);
     return (
       <main>{Header}
         <div className="room-wrap">
@@ -178,32 +261,10 @@ function MafiaApp({ uid, name }: { uid: string; name: string }) {
               onRemove={(target) => kickPlayer(code, uid, target).catch(fail)}
               onAddLocal={(n) => addLocalPlayer('mafia', code, uid, n, (id, nm) => ({ id, name: nm, alive: true })).catch(fail)}
             />
+            {isHost && <RoleEditor roles={roles} onChange={setRoleConfig} playerCount={displayCount} />}
             {isHost && (
-              <div className="hg-player-manager">
-                <h3>Roles</h3>
-                <div className="hg-row" style={{ marginTop: 10, justifyContent: 'space-between' }}>
-                  <span className="hg-field-label" style={{ margin: 0 }}>Mafia</span>
-                  <div className="hg-stepper">
-                    <button type="button" onClick={() => updateOpts({ evilCount: Math.max(1, opts.evilCount - 1) })} disabled={opts.evilCount <= 1}>−</button>
-                    <span className="val">{opts.evilCount}</span>
-                    <button type="button" onClick={() => updateOpts({ evilCount: Math.min(maxEvil, opts.evilCount + 1) })} disabled={opts.evilCount >= maxEvil}>+</button>
-                  </div>
-                </div>
-                <div className="hg-chip-row" style={{ marginTop: 14 }}>
-                  <button type="button" className={`hg-chip${opts.hasDoctor ? ' on' : ''}`} onClick={() => updateOpts({ hasDoctor: !opts.hasDoctor })}>Doctor</button>
-                  <button type="button" className={`hg-chip${opts.hasDetective ? ' on' : ''}`} onClick={() => updateOpts({ hasDetective: !opts.hasDetective })}>Detective</button>
-                  <button type="button" className={`hg-chip${opts.hasVigilante ? ' on' : ''}`} onClick={() => updateOpts({ hasVigilante: !opts.hasVigilante })}>Vigilante</button>
-                </div>
-                <p className="hg-note" style={{ marginTop: 10 }}>
-                  {tooManyRoles
-                    ? 'Too many special roles for this many players, turn one off.'
-                    : (() => { const v = Math.max(Math.max(players.length, 4) - namedCount, 0); return `${v} villager${v === 1 ? '' : 's'} fill the rest.`; })()}
-                </p>
-              </div>
-            )}
-            {isHost && (
-              <Button wide disabled={players.length < 4 || tooManyRoles} onClick={() => assignRolesAndStartNight(code, uid, opts).catch(fail)} style={{ marginTop: 20 }}>
-                {players.length < 4 ? 'Need at least 4 players' : 'Assign roles & start'}
+              <Button wide disabled={!!startError} onClick={() => assignRolesAndStartNight(code, uid, roles).catch(fail)} style={{ marginTop: 20 }}>
+                {startError ?? 'Assign roles & start'}
               </Button>
             )}
             <ErrorText>{error}</ErrorText>
@@ -232,64 +293,52 @@ function MafiaApp({ uid, name }: { uid: string; name: string }) {
   }
 
   if (room.phase === 'night') {
-    const role = mySecret?.role;
+    const behavior = mySecret?.behavior;
     const alive = room.players[uid]?.alive;
+    const canAct = (b?: RoleBehavior) => b === 'kill' || b === 'protect' || b === 'investigate' || b === 'solo-kill';
+    const actionLabel = behavior === 'kill' ? 'Choose who your team eliminates tonight.'
+      : behavior === 'protect' ? 'Choose who to protect.'
+      : behavior === 'investigate' ? 'Choose who to investigate.'
+      : behavior === 'solo-kill' ? 'Take your one shot, or leave it be tonight.' : '';
     return (
       <main>{Header}
         <div className="room-wrap">
           <div className="leave-row"><Button onClick={leave}>Leave room</Button></div>
           <div className="night-card">
-            <span className="role-badge">{role ? ROLE_LABEL[role] : '…'}</span>
+            <span className="role-badge">{mySecret?.role ?? '…'}</span>
             <h2>Night {room.settings.round}</h2>
-            {role === 'evil' && mySecret?.teammates && <p className="teammates">With you: {mySecret.teammates.join(', ') || 'no one else'}</p>}
+            {mySecret?.team === 'evil' && mySecret?.teammates && <p className="teammates">With you: {mySecret.teammates.join(', ') || 'no one else'}</p>}
             {!alive && <p className="hg-note" style={{ color: '#fff' }}>You've been eliminated, watch how it plays out.</p>}
-            {alive && (role === 'evil' || role === 'doctor' || role === 'detective') && (
+            {alive && behavior === 'solo-kill' && mySecret?.usedOnce && (
+              <p className="waiting-note">You've used your one shot. Wait for dawn.</p>
+            )}
+            {alive && canAct(behavior) && !(behavior === 'solo-kill' && mySecret?.usedOnce) && (
               <div style={{ marginTop: 20 }}>
                 <VoteGrid
-                  players={alivePlayers.filter((p) => p.id !== uid || role !== 'evil')}
+                  players={alivePlayers.filter((p) => p.id !== uid || (behavior !== 'kill' && behavior !== 'solo-kill'))}
                   selectedId={nightTarget}
-                  onVote={(id) => { setNightTarget(id); submitNightAction(code, uid, room.settings.round, id).catch(fail); }}
+                  onVote={(id) => { setNightTarget(id); submitNightAction(code, uid, room.settings.round, id, behavior === 'solo-kill').catch(fail); }}
                 />
-                <p className="waiting-note">{role === 'evil' ? 'Choose who the mafia kills tonight.' : role === 'doctor' ? 'Choose who to save.' : 'Choose who to investigate.'}</p>
+                <p className="waiting-note">{actionLabel}</p>
               </div>
             )}
-            {alive && role === 'vigilante' && (
-              <div style={{ marginTop: 20 }}>
-                {mySecret?.vigilanteShotUsed ? (
-                  <p className="waiting-note">You've used your one shot. Wait for dawn.</p>
-                ) : (
-                  <>
-                    <VoteGrid players={alivePlayers.filter((p) => p.id !== uid)} selectedId={nightTarget} onVote={(id) => { setNightTarget(id); submitVigilanteShot(code, uid, room.settings.round, id).catch(fail); }} />
-                    <p className="waiting-note">Take your one shot, or leave it be tonight.</p>
-                  </>
-                )}
-              </div>
-            )}
-            {alive && role === 'villager' && <p className="waiting-note">No action tonight, wait for dawn.</p>}
+            {alive && !canAct(behavior) && <p className="waiting-note">{behavior === 'extra-vote' ? 'No night power. Your day vote counts twice.' : 'No action tonight, wait for dawn.'}</p>}
             {mySecret?.nightResult && mySecret.nightResult.round === room.settings.round - 1 && (
               <div className="investigate-result">Your last check: {players.find((p) => p.id === mySecret.nightResult!.targetUid)?.name} is {mySecret.nightResult.isEvil ? 'MAFIA' : 'innocent'}.</div>
             )}
             {isHost && localAliveUids.map((localUid) => {
               const secret = localSecrets[localUid];
               const localName = players.find((p) => p.id === localUid)?.name ?? 'Player';
-              if (!secret?.role || secret.role === 'villager') return null;
-              const alreadyActed = secret.nightAction?.round === room.settings.round || secret.vigilanteShotUsed;
+              if (!secret?.behavior || !canAct(secret.behavior)) return null;
+              const alreadyActed = secret.nightAction?.round === room.settings.round || (secret.behavior === 'solo-kill' && secret.usedOnce);
               if (alreadyActed) return null;
               return (
                 <div key={localUid} style={{ marginTop: 20, paddingTop: 16, borderTop: '1px solid rgba(255,255,255,.2)' }}>
-                  <p className="waiting-note">{localName} (no phone) is {ROLE_LABEL[secret.role]}.</p>
-                  {(secret.role === 'evil' || secret.role === 'doctor' || secret.role === 'detective') && (
-                    <VoteGrid
-                      players={alivePlayers.filter((p) => p.id !== localUid || secret.role !== 'evil')}
-                      onVote={(id) => submitNightAction(code, localUid, room.settings.round, id).catch(fail)}
-                    />
-                  )}
-                  {secret.role === 'vigilante' && (
-                    <>
-                      <p className="waiting-note">Their one shot for the game, or skip:</p>
-                      <VoteGrid players={alivePlayers.filter((p) => p.id !== localUid)} onVote={(id) => submitVigilanteShot(code, localUid, room.settings.round, id).catch(fail)} />
-                    </>
-                  )}
+                  <p className="waiting-note">{localName} (no phone) is {secret.role}.</p>
+                  <VoteGrid
+                    players={alivePlayers.filter((p) => p.id !== localUid || (secret.behavior !== 'kill' && secret.behavior !== 'solo-kill'))}
+                    onVote={(id) => submitNightAction(code, localUid, room.settings.round, id, secret.behavior === 'solo-kill').catch(fail)}
+                  />
                 </div>
               );
             })}

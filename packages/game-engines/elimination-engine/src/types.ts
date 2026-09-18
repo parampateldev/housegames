@@ -1,32 +1,32 @@
 export type Team = 'town' | 'evil';
 
-export type RoleId = 'villager' | 'evil' | 'doctor' | 'detective' | 'witch' | 'vigilante';
+/**
+ * The fixed set of mechanical night powers a role can be built from. A host
+ * (or a game's own fixed roster, like Werewolf's) composes named roles out
+ * of these; the engine only ever reasons about behaviors, never role names.
+ */
+export type RoleBehavior =
+  | 'kill' // pools with every other 'kill' actor on the SAME team into one consensus target, every night
+  | 'solo-kill' // acts alone, one bullet for the whole game, blockable by 'protect'
+  | 'poison' // acts alone, one dose for the whole game, NOT blockable by 'protect'
+  | 'investigate' // learns the target's team
+  | 'protect' // shields its target from every kill/solo-kill this round (not poison)
+  | 'extra-vote' // no night power; this role's day vote counts twice
+  | 'none'; // no power at all
 
-export type RoleDef = { id: RoleId; team: Team; count: number };
+/** A named role a host has configured, e.g. { id: 'Mafia', team: 'evil', behaviors: ['kill'], count: 3 }. */
+export type RoleDef = { id: string; team: Team; behaviors: RoleBehavior[]; count: number };
 
-export type EnginePlayer = {
-  id: string;
-  role: RoleId;
-  alive: boolean;
-};
+export type EnginePlayer = { id: string; role: string; team: Team; alive: boolean };
 
-/** One night's worth of submitted actions, keyed by acting player's uid. */
-export type NightActions = {
-  evilTargetUid?: string; // the mafia/werewolf pack's chosen kill target (consensus, decided upstream)
-  doctorSaveUid?: string; // doctor/witch-save target
-  detectiveCheckUid?: string; // detective/seer target
-  witchPoisonUid?: string; // werewolf-only: witch's one-time poison, independent of the pack kill
-  vigilanteTargetUid?: string; // mafia-only: town's one-shot night kill, blockable by the doctor same as the pack's kill
-};
+/** One acting player's submitted night choice, one entry per behavior they used this round. */
+export type NightSubmission = { uid: string; team: Team; behavior: RoleBehavior; targetUid: string };
 
 export type NightResult = {
-  killedUids: string[]; // after doctor-save and witch-poison are both applied
-  investigation?: { targetUid: string; isEvil: boolean };
+  killedUids: string[]; // after every protect/poison interaction is resolved
+  investigations: { investigatorUid: string; targetUid: string; isEvil: boolean }[];
 };
 
-export type DayVoteResult = {
-  eliminatedUid: string | null;
-  tie: boolean;
-};
+export type DayVoteResult = { eliminatedUid: string | null; tie: boolean };
 
 export type WinnerResult = Team | null;

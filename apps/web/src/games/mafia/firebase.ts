@@ -5,18 +5,20 @@ import {
 } from '@fb/index';
 import {
   assignRoles as engineAssignRoles, resolveNight as engineResolveNight, tallyDayVote, checkWinner,
-  buildMafiaRoles, recommendedMafiaOptions, type MafiaRoleOptions,
-  type RoleDef, type RoleId, type EnginePlayer,
+  recommendedMafiaRoles, validateRoleComposition,
+  type RoleDef, type EnginePlayer, type Team,
 } from '@engines/elimination/index';
 import { get, ref, set, update, remove, onValue } from 'firebase/database';
 import {
-  buildNightActions, allNightActionsIn,
+  buildNightActions, allNightActionsIn, dayVoteWeights,
   type MafiaPlayer, type MafiaSettings, type MafiaSecret,
 } from './game';
 
 const NS = 'mafia';
 
 export type MafiaRoom = BaseRoom<MafiaSettings, MafiaPlayer>;
+
+export { recommendedMafiaRoles, validateRoleComposition };
 
 function requireDb() {
   if (!db) throw new Error('Firebase is not configured');
@@ -27,9 +29,6 @@ export async function createMafiaRoom(code: string, hostId: string, hostPlayer: 
   const settings: MafiaSettings = { roleConfig: [], round: 0, lastDeaths: [], winner: null };
   await createRoom(NS, code, hostId, hostPlayer, settings);
 }
-
-export { recommendedMafiaOptions };
-export type { MafiaRoleOptions };
 
 export async function joinMafiaRoom(code: string, player: MafiaPlayer) {
   await joinRoom(NS, code, player);
@@ -53,19 +52,32 @@ async function getRoom(code: string): Promise<MafiaRoom | null> {
   return snap.val() as MafiaRoom | null;
 }
 
-/** Host-only: assigns roles once, writes each player's own secret, starts round 1. Uses the host's chosen composition, or the recommended default if they didn't customize it. */
-export async function assignRolesAndStartNight(code: string, hostId: string, roleOptions?: MafiaRoleOptions) {
+/** Host-only: assigns roles once from the host's own role roster (or the recommended default if they never opened the editor), writes each player's own secret, starts round 1. */
+export async function assignRolesAndStartNight(code: string, hostId: string, roleConfigIn?: RoleDef[]) {
   const room = await getRoom(code);
   if (room?.hostId !== hostId) throw new Error('Only the host can start');
   const players = Object.values(room.players ?? {});
   if (players.length < 4) throw new Error('Need at least 4 players');
-  const roleConfig = buildMafiaRoles(players.length, roleOptions ?? recommendedMafiaOptions(players.length));
-  const roles = engineAssignRoles(players.map((p) => p.id), roleConfig);
+  const roleConfig = roleConfigIn ?? recommendedMafiaRoles(players.length);
+  const validationError = validateRoleComposition(players.length, roleConfig);
+  if (validationError) throw new Error(validationError);
 
-  const evilNames = players.filter((p) => roles[p.id] === 'evil').map((p) => p.name);
+  const roles = engineAssignRoles(players.map((p) => p.id), roleConfig);
+  const defByRole = Object.fromEntries(roleConfig.map((r) => [r.id, r]));
+  const uidsByTeam: Record<Team, string[]> = { evil: [], town: [] };
+  for (const p of players) {
+    const def = defByRole[roles[p.id]];
+    if (def) uidsByTeam[def.team].push(p.id);
+  }
+
   await Promise.all(players.map((p) => {
-    const role = roles[p.id];
-    const secret: MafiaSecret = role === 'evil' ? { role, teammates: evilNames.filter((n) => n !== p.name) } : { role };
+    const roleId = roles[p.id];
+    const def = defByRole[roleId];
+    const behavior = def.behaviors[0] ?? 'none';
+    const secret: MafiaSecret = { role: roleId, team: def.team, behavior };
+    if (def.team === 'evil') {
+      secret.teammates = uidsByTeam.evil.filter((uid) => uid !== p.id).map((uid) => players.find((pl) => pl.id === uid)!.name);
+    }
     return setSecret<MafiaSecret>(NS, code, p.id, secret);
   }));
 
@@ -73,14 +85,11 @@ export async function assignRolesAndStartNight(code: string, hostId: string, rol
   await setPhase(NS, code, hostId, 'night');
 }
 
-/** Merge-updates the acting player's OWN secret with their pick, keeping `role` intact. */
-export async function submitNightAction(code: string, uid: string, round: number, targetUid: string) {
-  await update(ref(requireDb(), `${NS}/secrets/${code}/${uid}`), { nightAction: { round, targetUid } });
-}
-
-/** Vigilante-only: their one shot for the whole game. */
-export async function submitVigilanteShot(code: string, uid: string, round: number, targetUid: string) {
-  await update(ref(requireDb(), `${NS}/secrets/${code}/${uid}`), { nightAction: { round, targetUid }, vigilanteShotUsed: true });
+/** Merge-updates the acting player's OWN secret with their pick, keeping role/team/behavior intact. Pass oneShot for a solo-kill role using their one bullet. */
+export async function submitNightAction(code: string, uid: string, round: number, targetUid: string, oneShot?: boolean) {
+  const patch: Partial<MafiaSecret> = { nightAction: { round, targetUid } };
+  if (oneShot) patch.usedOnce = true;
+  await update(ref(requireDb(), `${NS}/secrets/${code}/${uid}`), patch);
 }
 
 export async function nightActionsReady(code: string, alivePlayerIds: string[]): Promise<boolean> {
@@ -88,32 +97,24 @@ export async function nightActionsReady(code: string, alivePlayerIds: string[]):
   if (!room) return false;
   const players = Object.values(room.players ?? {});
   const secrets = await getAllSecretsOnce<MafiaSecret>(NS, code, players.map((p) => p.id));
-  const roles = Object.fromEntries(players.map((p) => [p.id, secrets[p.id]?.role]).filter(([, r]) => r)) as Record<string, RoleId>;
-  return allNightActionsIn(secrets, roles, alivePlayerIds, room.settings.round);
+  return allNightActionsIn(secrets, alivePlayerIds, room.settings.round);
 }
 
-/** Host-only: resolves the night (doctor-save-before-kill etc handled by the shared engine), applies deaths, advances to day. */
+/** Host-only: resolves the night (protect-before-kill etc handled by the shared engine), applies deaths, advances to day. */
 export async function resolveNightPhase(code: string, hostId: string) {
   const room = await getRoom(code);
   if (room?.hostId !== hostId) throw new Error('Only the host can resolve the night');
   const players = Object.values(room.players ?? {});
   const secrets = await getAllSecretsOnce<MafiaSecret>(NS, code, players.map((p) => p.id));
-  const roles = Object.fromEntries(players.map((p) => [p.id, secrets[p.id]?.role]).filter(([, r]) => r)) as Record<string, RoleId>;
+  const teamByUid = Object.fromEntries(players.map((p) => [p.id, secrets[p.id]?.team ?? 'town'])) as Record<string, Team>;
 
-  const actions = buildNightActions(secrets, roles, room.settings.round);
-  const result = engineResolveNight(actions, roles);
+  const submissions = buildNightActions(secrets, room.settings.round);
+  const result = engineResolveNight(submissions, teamByUid);
 
   await Promise.all(result.killedUids.map((uid) => updatePlayer<MafiaPlayer>(NS, code, uid, { alive: false })));
-
-  if (result.investigation) {
-    const targetUid = result.investigation.targetUid;
-    const detectiveUid = Object.entries(roles).find(([id, r]) => r === 'detective' && secrets[id]?.nightAction?.targetUid === targetUid)?.[0];
-    if (detectiveUid) {
-      await update(ref(requireDb(), `${NS}/secrets/${code}/${detectiveUid}`), {
-        nightResult: { round: room.settings.round, targetUid, isEvil: result.investigation.isEvil },
-      });
-    }
-  }
+  await Promise.all(result.investigations.map((inv) => update(ref(requireDb(), `${NS}/secrets/${code}/${inv.investigatorUid}`), {
+    nightResult: { round: room.settings.round, targetUid: inv.targetUid, isEvil: inv.isEvil },
+  })));
 
   await saveSettings<MafiaSettings>(NS, code, hostId, { ...room.settings, lastDeaths: result.killedUids });
   await setPhase(NS, code, hostId, 'day');
@@ -132,25 +133,28 @@ export function watchVotes(code: string, cb: (votes: Record<string, string>) => 
   return onValue(ref(requireDb(), `${NS}/rooms/${code}/votes`), (snap) => cb((snap.val() as Record<string, string>) ?? {}));
 }
 
-/** Host-only: applies the day vote's result and checks for a winner. */
+/** Host-only: applies the day vote's result (a Mayor-type role's ballot counts twice) and checks for a winner. */
 export async function resolveVote(code: string, hostId: string) {
   const room = await getRoom(code);
   if (room?.hostId !== hostId) throw new Error('Only the host can resolve the vote');
   const snap = await get(ref(requireDb(), `${NS}/rooms/${code}/votes`));
   const votes = (snap.val() as Record<string, string>) ?? {};
-  const { eliminatedUid, tie } = tallyDayVote(votes);
+  const players = Object.values(room.players ?? {});
+  const secrets = await getAllSecretsOnce<MafiaSecret>(NS, code, players.map((p) => p.id));
+  const { eliminatedUid, tie } = tallyDayVote(votes, dayVoteWeights(secrets));
 
   if (tie || !eliminatedUid) {
     await remove(ref(requireDb(), `${NS}/rooms/${code}/votes`));
-    return { tie: true, winner: null as 'town' | 'evil' | null };
+    return { tie: true, winner: null as Team | null };
   }
 
   await updatePlayer<MafiaPlayer>(NS, code, eliminatedUid, { alive: false });
   await remove(ref(requireDb(), `${NS}/rooms/${code}/votes`));
 
-  const players = Object.values(room.players ?? {}).map((p) => (p.id === eliminatedUid ? { ...p, alive: false } : p));
-  const secrets = await getAllSecretsOnce<MafiaSecret>(NS, code, players.map((p) => p.id));
-  const enginePlayers: EnginePlayer[] = players.map((p) => ({ id: p.id, alive: p.alive, role: secrets[p.id]?.role ?? 'villager' }));
+  const updatedPlayers = players.map((p) => (p.id === eliminatedUid ? { ...p, alive: false } : p));
+  const enginePlayers: EnginePlayer[] = updatedPlayers.map((p) => ({
+    id: p.id, alive: p.alive, role: secrets[p.id]?.role ?? '', team: secrets[p.id]?.team ?? 'town',
+  }));
   const winner = checkWinner(enginePlayers);
 
   if (winner) {
