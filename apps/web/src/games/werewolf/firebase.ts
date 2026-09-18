@@ -5,12 +5,12 @@ import {
 } from '@fb/index';
 import {
   assignRoles as engineAssignRoles, resolveNight as engineResolveNight, tallyDayVote, checkWinner, defaultWerewolfRoles,
-  type RoleDef, type RoleId, type EnginePlayer,
+  type EnginePlayer, type Team,
 } from '@engines/elimination/index';
 import { get, ref, set, update, remove, onValue } from 'firebase/database';
 import {
-  buildNightActions, allNightActionsIn,
-  type WerewolfPlayer, type WerewolfSettings, type WerewolfSecret,
+  buildNightActions, allNightActionsIn, WEREWOLF_TEAM_OF,
+  type WerewolfPlayer, type WerewolfSettings, type WerewolfSecret, type WerewolfRoleId,
 } from './game';
 
 const NS = 'werewolf';
@@ -56,7 +56,7 @@ export async function assignRolesAndStartNight(code: string, hostId: string) {
   const players = Object.values(room.players ?? {});
   if (players.length < 4) throw new Error('Need at least 4 players');
   const roleConfig = defaultWerewolfRoles(players.length);
-  const roles = engineAssignRoles(players.map((p) => p.id), roleConfig);
+  const roles = engineAssignRoles(players.map((p) => p.id), roleConfig) as Record<string, WerewolfRoleId>;
 
   const evilNames = players.filter((p) => roles[p.id] === 'evil').map((p) => p.name);
   await Promise.all(players.map((p) => {
@@ -88,7 +88,7 @@ export async function nightActionsReady(code: string, alivePlayerIds: string[]):
   if (!room) return false;
   const players = Object.values(room.players ?? {});
   const secrets = await getAllSecretsOnce<WerewolfSecret>(NS, code, players.map((p) => p.id));
-  const roles = Object.fromEntries(players.map((p) => [p.id, secrets[p.id]?.role]).filter(([, r]) => r)) as Record<string, RoleId>;
+  const roles = Object.fromEntries(players.map((p) => [p.id, secrets[p.id]?.role]).filter(([, r]) => r)) as Record<string, WerewolfRoleId>;
   return allNightActionsIn(secrets, roles, alivePlayerIds, room.settings.round);
 }
 
@@ -98,22 +98,17 @@ export async function resolveNightPhase(code: string, hostId: string) {
   if (room?.hostId !== hostId) throw new Error('Only the host can resolve the night');
   const players = Object.values(room.players ?? {});
   const secrets = await getAllSecretsOnce<WerewolfSecret>(NS, code, players.map((p) => p.id));
-  const roles = Object.fromEntries(players.map((p) => [p.id, secrets[p.id]?.role]).filter(([, r]) => r)) as Record<string, RoleId>;
+  const roles = Object.fromEntries(players.map((p) => [p.id, secrets[p.id]?.role]).filter(([, r]) => r)) as Record<string, WerewolfRoleId>;
+  const teamByUid = Object.fromEntries(players.map((p) => [p.id, WEREWOLF_TEAM_OF[roles[p.id]] ?? 'town'])) as Record<string, Team>;
 
-  const actions = buildNightActions(secrets, roles, room.settings.round);
-  const result = engineResolveNight(actions, roles);
+  const submissions = buildNightActions(secrets, roles, room.settings.round);
+  const result = engineResolveNight(submissions, teamByUid);
 
   await Promise.all(result.killedUids.map((uid) => updatePlayer<WerewolfPlayer>(NS, code, uid, { alive: false })));
 
-  if (result.investigation) {
-    const targetUid = result.investigation.targetUid;
-    const detectiveUid = Object.entries(roles).find(([id, r]) => r === 'detective' && secrets[id]?.nightAction?.targetUid === targetUid)?.[0];
-    if (detectiveUid) {
-      await update(ref(requireDb(), `${NS}/secrets/${code}/${detectiveUid}`), {
-        nightResult: { round: room.settings.round, targetUid, isEvil: result.investigation.isEvil },
-      });
-    }
-  }
+  await Promise.all(result.investigations.map((inv) => update(ref(requireDb(), `${NS}/secrets/${code}/${inv.investigatorUid}`), {
+    nightResult: { round: room.settings.round, targetUid: inv.targetUid, isEvil: inv.isEvil },
+  })));
 
   await saveSettings<WerewolfSettings>(NS, code, hostId, { ...room.settings, lastDeaths: result.killedUids });
   await setPhase(NS, code, hostId, 'day');
@@ -150,7 +145,10 @@ export async function resolveVote(code: string, hostId: string) {
 
   const players = Object.values(room.players ?? {}).map((p) => (p.id === eliminatedUid ? { ...p, alive: false } : p));
   const secrets = await getAllSecretsOnce<WerewolfSecret>(NS, code, players.map((p) => p.id));
-  const enginePlayers: EnginePlayer[] = players.map((p) => ({ id: p.id, alive: p.alive, role: secrets[p.id]?.role ?? 'villager' }));
+  const enginePlayers: EnginePlayer[] = players.map((p) => {
+    const role = secrets[p.id]?.role ?? 'villager';
+    return { id: p.id, alive: p.alive, role, team: WEREWOLF_TEAM_OF[role] };
+  });
   const winner = checkWinner(enginePlayers);
 
   if (winner) {

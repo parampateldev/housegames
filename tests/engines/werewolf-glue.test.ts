@@ -1,44 +1,35 @@
 import { describe, it, expect } from 'vitest';
-import { buildNightActions, allNightActionsIn, type WerewolfSecret } from '../../apps/web/src/games/werewolf/game';
-import type { RoleId } from '../../packages/game-engines/elimination-engine/src/types';
+import { buildNightActions, allNightActionsIn, type WerewolfSecret, type WerewolfRoleId } from '../../apps/web/src/games/werewolf/game';
 
-const roles: Record<string, RoleId> = {
+const roles: Record<string, WerewolfRoleId> = {
   m1: 'evil', m2: 'evil', doc: 'doctor', det: 'detective', vic: 'villager',
 };
 
 describe('buildNightActions', () => {
-  it('resolves the mafia kill target by plurality among evil votes', () => {
+  it('submits one entry per acting player, tagged with their behavior and team', () => {
     const secrets: Record<string, WerewolfSecret> = {
       m1: { role: 'evil', nightAction: { round: 1, targetUid: 'vic' } },
       m2: { role: 'evil', nightAction: { round: 1, targetUid: 'vic' } },
       doc: { role: 'doctor', nightAction: { round: 1, targetUid: 'vic' } },
       det: { role: 'detective', nightAction: { round: 1, targetUid: 'm1' } },
     };
-    const actions = buildNightActions(secrets, roles, 1);
-    expect(actions.evilTargetUid).toBe('vic');
-    expect(actions.doctorSaveUid).toBe('vic');
-    expect(actions.detectiveCheckUid).toBe('m1');
+    const submissions = buildNightActions(secrets, roles, 1);
+    expect(submissions).toContainEqual({ uid: 'm1', team: 'evil', behavior: 'kill', targetUid: 'vic' });
+    expect(submissions).toContainEqual({ uid: 'm2', team: 'evil', behavior: 'kill', targetUid: 'vic' });
+    expect(submissions).toContainEqual({ uid: 'doc', team: 'town', behavior: 'protect', targetUid: 'vic' });
+    expect(submissions).toContainEqual({ uid: 'det', team: 'town', behavior: 'investigate', targetUid: 'm1' });
   });
 
   it('ignores submissions from a previous round', () => {
     const secrets: Record<string, WerewolfSecret> = {
       m1: { role: 'evil', nightAction: { round: 1, targetUid: 'vic' } },
     };
-    const actions = buildNightActions(secrets, roles, 2);
-    expect(actions.evilTargetUid).toBeUndefined();
+    const submissions = buildNightActions(secrets, roles, 2);
+    expect(submissions).toHaveLength(0);
   });
 
-  it('a tied mafia vote resolves to no consensus target (tallyDayVote tie semantics)', () => {
-    const secrets: Record<string, WerewolfSecret> = {
-      m1: { role: 'evil', nightAction: { round: 1, targetUid: 'vic' } },
-      m2: { role: 'evil', nightAction: { round: 1, targetUid: 'doc' } },
-    };
-    const actions = buildNightActions(secrets, roles, 1);
-    expect(actions.evilTargetUid).toBeUndefined();
-  });
-
-  it('witch poison is read from the separate nightPoison field, independent of nightAction', () => {
-    const witchRoles: Record<string, RoleId> = { w: 'witch', vic: 'villager' };
+  it('witch poison is read from the separate nightPoison field, as its own independent submission', () => {
+    const witchRoles: Record<string, WerewolfRoleId> = { w: 'witch', vic: 'villager' };
     const secrets: Record<string, WerewolfSecret> = {
       w: {
         role: 'witch',
@@ -46,9 +37,9 @@ describe('buildNightActions', () => {
         nightPoison: { round: 1, targetUid: 'vic' }, // her poison, same or different target
       },
     };
-    const actions = buildNightActions(secrets, witchRoles, 1);
-    expect(actions.doctorSaveUid).toBe('vic');
-    expect(actions.witchPoisonUid).toBe('vic');
+    const submissions = buildNightActions(secrets, witchRoles, 1);
+    expect(submissions).toContainEqual({ uid: 'w', team: 'town', behavior: 'protect', targetUid: 'vic' });
+    expect(submissions).toContainEqual({ uid: 'w', team: 'town', behavior: 'poison', targetUid: 'vic' });
   });
 });
 

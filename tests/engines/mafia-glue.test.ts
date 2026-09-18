@@ -1,86 +1,77 @@
 import { describe, it, expect } from 'vitest';
 import { buildNightActions, allNightActionsIn, type MafiaSecret } from '../../apps/web/src/games/mafia/game';
-import type { RoleId } from '../../packages/game-engines/elimination-engine/src/types';
-
-const roles: Record<string, RoleId> = {
-  m1: 'evil', m2: 'evil', doc: 'doctor', det: 'detective', vic: 'villager',
-};
 
 describe('buildNightActions', () => {
-  it('resolves the mafia kill target by plurality among evil votes', () => {
+  it('submits one entry per acting player, carrying their own team and behavior', () => {
     const secrets: Record<string, MafiaSecret> = {
-      m1: { role: 'evil', nightAction: { round: 1, targetUid: 'vic' } },
-      m2: { role: 'evil', nightAction: { round: 1, targetUid: 'vic' } },
-      doc: { role: 'doctor', nightAction: { round: 1, targetUid: 'vic' } },
-      det: { role: 'detective', nightAction: { round: 1, targetUid: 'm1' } },
+      m1: { role: 'Mafia', team: 'evil', behavior: 'kill', nightAction: { round: 1, targetUid: 'vic' } },
+      m2: { role: 'Mafia', team: 'evil', behavior: 'kill', nightAction: { round: 1, targetUid: 'vic' } },
+      doc: { role: 'Doctor', team: 'town', behavior: 'protect', nightAction: { round: 1, targetUid: 'vic' } },
+      det: { role: 'Police', team: 'town', behavior: 'investigate', nightAction: { round: 1, targetUid: 'm1' } },
+      vic: { role: 'Townie', team: 'town', behavior: 'none' },
     };
-    const actions = buildNightActions(secrets, roles, 1);
-    expect(actions.evilTargetUid).toBe('vic');
-    expect(actions.doctorSaveUid).toBe('vic');
-    expect(actions.detectiveCheckUid).toBe('m1');
+    const submissions = buildNightActions(secrets, 1);
+    expect(submissions).toContainEqual({ uid: 'm1', team: 'evil', behavior: 'kill', targetUid: 'vic' });
+    expect(submissions).toContainEqual({ uid: 'm2', team: 'evil', behavior: 'kill', targetUid: 'vic' });
+    expect(submissions).toContainEqual({ uid: 'doc', team: 'town', behavior: 'protect', targetUid: 'vic' });
+    expect(submissions).toContainEqual({ uid: 'det', team: 'town', behavior: 'investigate', targetUid: 'm1' });
+    expect(submissions.some((s) => s.uid === 'vic')).toBe(false); // 'none' never submits
   });
 
   it('ignores submissions from a previous round', () => {
     const secrets: Record<string, MafiaSecret> = {
-      m1: { role: 'evil', nightAction: { round: 1, targetUid: 'vic' } },
+      m1: { role: 'Mafia', team: 'evil', behavior: 'kill', nightAction: { round: 1, targetUid: 'vic' } },
     };
-    const actions = buildNightActions(secrets, roles, 2);
-    expect(actions.evilTargetUid).toBeUndefined();
+    expect(buildNightActions(secrets, 2)).toHaveLength(0);
   });
 
-  it('a tied mafia vote resolves to no consensus target (tallyDayVote tie semantics)', () => {
+  it('a vigilante-style solo-kill role stops submitting once their one shot is used', () => {
     const secrets: Record<string, MafiaSecret> = {
-      m1: { role: 'evil', nightAction: { round: 1, targetUid: 'vic' } },
-      m2: { role: 'evil', nightAction: { round: 1, targetUid: 'doc' } },
+      v: { role: 'Vigilante', team: 'town', behavior: 'solo-kill', nightAction: { round: 2, targetUid: 'vic' }, usedOnce: true },
     };
-    const actions = buildNightActions(secrets, roles, 1);
-    expect(actions.evilTargetUid).toBeUndefined();
+    expect(buildNightActions(secrets, 2)).toHaveLength(0);
   });
 
-  it('reads the vigilante\'s shot from their nightAction, once, ever', () => {
-    const vigRoles: Record<string, RoleId> = { v: 'vigilante', target: 'villager' };
+  it('a Mayor-style extra-vote role never submits a night action', () => {
     const secrets: Record<string, MafiaSecret> = {
-      v: { role: 'vigilante', nightAction: { round: 1, targetUid: 'target' } },
+      mayor: { role: 'Mayor', team: 'town', behavior: 'extra-vote', nightAction: { round: 1, targetUid: 'vic' } },
     };
-    const actions = buildNightActions(secrets, vigRoles, 1);
-    expect(actions.vigilanteTargetUid).toBe('target');
-  });
-
-  it('ignores the vigilante once their one shot is already used', () => {
-    const vigRoles: Record<string, RoleId> = { v: 'vigilante', target: 'villager' };
-    const secrets: Record<string, MafiaSecret> = {
-      v: { role: 'vigilante', nightAction: { round: 2, targetUid: 'target' }, vigilanteShotUsed: true },
-    };
-    const actions = buildNightActions(secrets, vigRoles, 2);
-    expect(actions.vigilanteTargetUid).toBeUndefined();
+    expect(buildNightActions(secrets, 1)).toHaveLength(0);
   });
 });
 
 describe('allNightActionsIn', () => {
-  it('false until evil, doctor and detective have all submitted', () => {
-    const secrets: Record<string, MafiaSecret> = {
-      m1: { role: 'evil', nightAction: { round: 1, targetUid: 'vic' } },
-    };
-    expect(allNightActionsIn(secrets, roles, ['m1', 'm2', 'doc', 'det', 'vic'], 1)).toBe(false);
+  const secretsBase: Record<string, MafiaSecret> = {
+    m1: { role: 'Mafia', team: 'evil', behavior: 'kill' },
+    m2: { role: 'Mafia', team: 'evil', behavior: 'kill' },
+    doc: { role: 'Doctor', team: 'town', behavior: 'protect' },
+    det: { role: 'Police', team: 'town', behavior: 'investigate' },
+    vic: { role: 'Townie', team: 'town', behavior: 'none' },
+  };
+
+  it('false until kill, protect and investigate have all submitted', () => {
+    const secrets = { ...secretsBase, m1: { ...secretsBase.m1, nightAction: { round: 1, targetUid: 'vic' } } };
+    expect(allNightActionsIn(secrets, ['m1', 'm2', 'doc', 'det', 'vic'], 1)).toBe(false);
   });
 
-  it('true once all mandatory roles have submitted, regardless of the optional vigilante', () => {
+  it('true once all mandatory behaviors have submitted, regardless of the optional solo-kill or no-power roles', () => {
     const secrets: Record<string, MafiaSecret> = {
-      m1: { role: 'evil', nightAction: { round: 1, targetUid: 'vic' } },
-      m2: { role: 'evil', nightAction: { round: 1, targetUid: 'vic' } },
-      doc: { role: 'doctor', nightAction: { round: 1, targetUid: 'vic' } },
-      det: { role: 'detective', nightAction: { round: 1, targetUid: 'm1' } },
+      m1: { ...secretsBase.m1, nightAction: { round: 1, targetUid: 'vic' } },
+      m2: { ...secretsBase.m2, nightAction: { round: 1, targetUid: 'vic' } },
+      doc: { ...secretsBase.doc, nightAction: { round: 1, targetUid: 'vic' } },
+      det: { ...secretsBase.det, nightAction: { round: 1, targetUid: 'm1' } },
+      vic: secretsBase.vic,
     };
-    expect(allNightActionsIn(secrets, roles, ['m1', 'm2', 'doc', 'det', 'vic'], 1)).toBe(true);
+    expect(allNightActionsIn(secrets, ['m1', 'm2', 'doc', 'det', 'vic'], 1)).toBe(true);
   });
 
   it('a dead mandatory actor is not required to submit', () => {
     const secrets: Record<string, MafiaSecret> = {
-      m1: { role: 'evil', nightAction: { round: 1, targetUid: 'vic' } },
-      doc: { role: 'doctor', nightAction: { round: 1, targetUid: 'vic' } },
-      det: { role: 'detective', nightAction: { round: 1, targetUid: 'm1' } },
+      m1: { ...secretsBase.m1, nightAction: { round: 1, targetUid: 'vic' } },
+      doc: { ...secretsBase.doc, nightAction: { round: 1, targetUid: 'vic' } },
+      det: { ...secretsBase.det, nightAction: { round: 1, targetUid: 'm1' } },
     };
     // m2 excluded from the alive list entirely (e.g. already eliminated)
-    expect(allNightActionsIn(secrets, roles, ['m1', 'doc', 'det', 'vic'], 1)).toBe(true);
+    expect(allNightActionsIn(secrets, ['m1', 'doc', 'det', 'vic'], 1)).toBe(true);
   });
 });
