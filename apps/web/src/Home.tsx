@@ -20,7 +20,7 @@ export function Home() {
   return (
     <main>
       <header style={{ padding: '22px clamp(18px,5vw,72px)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <span className="hg-eyebrow" style={{ fontWeight: 700, color: 'var(--hg-ink)' }}>Mingl</span>
+        <span className="hg-eyebrow" style={{ fontWeight: 700, color: 'var(--hg-ink)' }}>Jestr</span>
         {!loading && (
           user ? (
             <div className="hg-row">
@@ -35,7 +35,7 @@ export function Home() {
 
       <div className="hero" style={{ padding: '4vh clamp(22px,8vw,130px) 2vh' }}>
         <div className="hg-eyebrow">Twelve games, one room code</div>
-        <h1 className="hg-headline">Min<em>gl</em></h1>
+        <h1 className="hg-headline">Je<em>str</em></h1>
         <p className="hg-lead">
           Sign in to host a room, or jump straight in as a guest with just a name. Pick a game below.
         </p>
