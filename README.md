@@ -6,6 +6,8 @@ Twelve live-multiplayer party games, one room code away. Live at [parampateldev.
 
 Sign in with Google or email to host a room (so it can be saved to your account); anyone else joins as a guest with just a name, no account needed.
 
+**Every game has:** a QR code and copy-link for the room, a Help button with real rules (not filler), and host controls to hand off host, remove a player, or add someone at the table who doesn't have a phone. Signed-in hosts get a dashboard of their recent rooms.
+
 ## Architecture
 
 See the [architecture proposal](https://claude.ai/artifact/8UqqgLjjqwKM7TCawNf9pn) for the full design rationale. Summary:
@@ -13,10 +15,12 @@ See the [architecture proposal](https://claude.ai/artifact/8UqqgLjjqwKM7TCawNf9p
 - **One Vite + React + TypeScript app** (`apps/web`) hosts all 12 games behind a shared nav, auth state, and design system, rather than 12 independent builds.
 - **Firebase Realtime Database**, namespaced per game (`empire/`, `mafia/`, `codenames/`, ...), with **Firebase Auth** (Google, email/password, anonymous).
 - **One security principle, everywhere:** a secret never lives inside a publicly-readable node. It lives at its own path (`$ns/secrets/$room/$uid`), gated per-uid, never widened to a group, never gated on a clock (see `packages/shared-firebase/src/secrets.ts` and the comment in `scripts/build-rules.mjs`). This is the direct fix for a real bug in Empire's history: a rules of the form `now < endsAt` looks reasonable but never re-evaluates as time passes, so a listener attached before the deadline kept reading secret data forever.
+- **Public room state (`settings`/`phase`/`state`) is writable by the host or any player currently in the room**, not host-only. A rotating active player (Codenames' spymaster, Wavelength's psychic, Secret Hitler's president) is very often not the room host, and gating those fields to host-only silently broke every one of those actions. Secrets stay strictly per-uid gated regardless.
 - **Two shared engines** instead of twelve bespoke implementations:
   - `packages/shared-firebase`, the "secret-reveal" primitive (per-uid gated secrets, host-only aggregate reveals, generic room CRUD with deterministic host migration) used by nearly every game.
   - `packages/game-engines/elimination-engine`, the night-action resolver (role assignment, doctor-save-before-kill ordering, day-vote tally, win check) shared by Mafia and Werewolf.
 - **Security rules are generated, not hand-copied** (`scripts/build-rules.mjs` → `database.rules.json`), one template applied identically to all 12 namespaces, so there's no per-game copy-paste drift to typo.
+- **`packages/shared-ui`** also has the cross-game chrome: `RoomHeader` (QR/share/dashboard link), `PlayerManager` (host controls), `HelpModal` (per-game rules).
 
 ## Repo layout
 
