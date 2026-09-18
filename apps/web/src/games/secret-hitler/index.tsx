@@ -33,6 +33,7 @@ function SHApp({ uid, name }: { uid: string; name: string }) {
   const [error, setError] = useState('');
   const [role, setRole] = useState<SHRoleSecret | null>(null);
   const [draw, setDraw] = useState<{ cards: Policy[] } | null>(null);
+  const [localDraw, setLocalDraw] = useState<{ cards: Policy[] } | null>(null);
   const [votes, setVotes] = useState<Record<string, string>>({});
   const [nomineePick, setNomineePick] = useState('');
 
@@ -54,6 +55,18 @@ function SHApp({ uid, name }: { uid: string; name: string }) {
     if (!code) return;
     return watchMyDraw(code, uid, setDraw);
   }, [code, uid, room?.phase]);
+
+  // The host reads the legislative draw for a president/chancellor who has
+  // no device of their own, so their turn doesn't permanently stall the game.
+  const actingLocalUid = room?.phase === 'legislativePresident' && room.settings.presidentId?.startsWith('local-')
+    ? room.settings.presidentId
+    : room?.phase === 'legislativeChancellor' && room.settings.chancellorId?.startsWith('local-')
+      ? room.settings.chancellorId
+      : null;
+  useEffect(() => {
+    if (!code || !isHost || !actingLocalUid) { setLocalDraw(null); return; }
+    return watchMyDraw(code, actingLocalUid, setLocalDraw);
+  }, [code, isHost, actingLocalUid]);
 
   useEffect(() => {
     if (!code) return;
@@ -248,19 +261,39 @@ function SHApp({ uid, name }: { uid: string; name: string }) {
               </select>
               <Button wide disabled={!nomineePick} onClick={() => submitChoice(code, uid, nomineePick).catch(fail)}>Nominate</Button>
             </Card>
+          ) : isHost && room.settings.presidentId?.startsWith('local-') ? (
+            <Card>
+              <h3>Nominate for {president?.name} (no phone)</h3>
+              <select value={nomineePick} onChange={(e) => setNomineePick(e.target.value)} style={{ width: '100%', padding: 12, margin: '10px 0' }}>
+                <option value="">Choose…</option>
+                {players.filter((p) => p.id !== room.settings.presidentId && p.alive).map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
+              </select>
+              <Button wide disabled={!nomineePick} onClick={() => submitChoice(code, room.settings.presidentId, nomineePick).catch(fail)}>Nominate</Button>
+            </Card>
           ) : <p className="hg-note">{president?.name} is nominating a chancellor…</p>
         )}
 
         {room.phase === 'vote' && (
-          votes[uid] ? <p className="hg-note">Vote cast. Waiting on others…</p> : (
-            <Card>
-              <h3>Vote: {president?.name} &amp; {chancellorNominee?.name}</h3>
-              <div className="actions">
-                <Button onClick={() => submitChoice(code, uid, 'ja').catch(fail)}>Ja!</Button>
-                <Button ghost onClick={() => submitChoice(code, uid, 'nein').catch(fail)}>Nein.</Button>
-              </div>
-            </Card>
-          )
+          <>
+            {votes[uid] ? <p className="hg-note">Vote cast. Waiting on others…</p> : (
+              <Card>
+                <h3>Vote: {president?.name} &amp; {chancellorNominee?.name}</h3>
+                <div className="actions">
+                  <Button onClick={() => submitChoice(code, uid, 'ja').catch(fail)}>Ja!</Button>
+                  <Button ghost onClick={() => submitChoice(code, uid, 'nein').catch(fail)}>Nein.</Button>
+                </div>
+              </Card>
+            )}
+            {isHost && players.filter((p) => p.alive && p.id.startsWith('local-') && !votes[p.id]).map((p) => (
+              <Card key={p.id}>
+                <h3>Vote for {p.name} (no phone)</h3>
+                <div className="actions">
+                  <Button onClick={() => submitChoice(code, p.id, 'ja').catch(fail)}>Ja!</Button>
+                  <Button ghost onClick={() => submitChoice(code, p.id, 'nein').catch(fail)}>Nein.</Button>
+                </div>
+              </Card>
+            ))}
+          </>
         )}
 
         {room.phase === 'legislativePresident' && (
@@ -269,6 +302,13 @@ function SHApp({ uid, name }: { uid: string; name: string }) {
               <h3>Discard one policy</h3>
               <div className="card-row">
                 {draw.cards.map((c, i) => <button key={i} className={'policy-card ' + c} onClick={() => submitChoice(code, uid, String(i)).catch(fail)}>{c}</button>)}
+              </div>
+            </Card>
+          ) : isHost && room.settings.presidentId?.startsWith('local-') && localDraw ? (
+            <Card>
+              <h3>Discard one policy for {president?.name} (no phone)</h3>
+              <div className="card-row">
+                {localDraw.cards.map((c, i) => <button key={i} className={'policy-card ' + c} onClick={() => submitChoice(code, actingLocalUid!, String(i)).catch(fail)}>{c}</button>)}
               </div>
             </Card>
           ) : <p className="hg-note">{president?.name} is examining policies…</p>
@@ -280,6 +320,13 @@ function SHApp({ uid, name }: { uid: string; name: string }) {
               <h3>Discard one, enact the other</h3>
               <div className="card-row">
                 {draw.cards.map((c, i) => <button key={i} className={'policy-card ' + c} onClick={() => submitChoice(code, uid, String(i)).catch(fail)}>{c}</button>)}
+              </div>
+            </Card>
+          ) : isHost && room.settings.chancellorId?.startsWith('local-') && localDraw ? (
+            <Card>
+              <h3>Discard one, enact the other, for {chancellor?.name} (no phone)</h3>
+              <div className="card-row">
+                {localDraw.cards.map((c, i) => <button key={i} className={'policy-card ' + c} onClick={() => submitChoice(code, actingLocalUid!, String(i)).catch(fail)}>{c}</button>)}
               </div>
             </Card>
           ) : <p className="hg-note">{chancellor?.name} is enacting a policy…</p>
