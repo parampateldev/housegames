@@ -115,6 +115,26 @@ describe('room creation & host handoff', () => {
     await assertSucceeds(host.ref(`${NS}/rooms/${ROOM}/players/p2`).set(null));
   });
 
+  it('a player can cast their own vote but not overwrite someone else\'s', async () => {
+    await seed(async (db) => {
+      await db.ref(`${NS}/rooms/${ROOM}/hostId`).set('host1');
+    });
+    const p2 = dbAs('p2');
+    await assertSucceeds(p2.ref(`${NS}/rooms/${ROOM}/votes/p2`).set('p3'));
+    await assertFails(p2.ref(`${NS}/rooms/${ROOM}/votes/p3`).set('p2'));
+  });
+
+  it('the host can clear the WHOLE votes node at once (starting a new vote), a non-host cannot', async () => {
+    await seed(async (db) => {
+      await db.ref(`${NS}/rooms/${ROOM}/hostId`).set('host1');
+      await db.ref(`${NS}/rooms/${ROOM}/votes`).set({ p2: 'p3', p3: 'p2' });
+    });
+    const stranger = dbAs('p2');
+    await assertFails(stranger.ref(`${NS}/rooms/${ROOM}/votes`).set(null));
+    const host = dbAs('host1');
+    await assertSucceeds(host.ref(`${NS}/rooms/${ROOM}/votes`).set(null));
+  });
+
   it('current host can hand off to a uid that is already a player', async () => {
     await seed(async (db) => {
       await db.ref(`${NS}/rooms/${ROOM}/hostId`).set('host1');

@@ -58,6 +58,12 @@ function gameRules(ns) {
           $uid: { '.write': `auth != null && (auth.uid === $uid || ${hostOnly})` },
         },
         votes: {
+          // The host also needs to clear the WHOLE votes node at once when a
+          // new vote starts or a round resolves (remove() on this exact
+          // path); a .write rule only on $uid never covers that, Firebase
+          // doesn't grant a parent-path write just because every child
+          // would themselves allow it.
+          '.write': `auth != null && ${hostOnly}`,
           $uid: { '.write': `auth != null && (auth.uid === $uid || ${hostOnly})` },
         },
         '.write': `auth != null && ((!data.exists() && newData.child('hostId').val() === auth.uid) || (!newData.exists() && data.child('hostId').val() === auth.uid))`,
