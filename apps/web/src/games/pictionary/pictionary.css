@@ -8,7 +8,7 @@
   border: 1px solid var(--hg-border-strong);
   border-radius: 12px;
   display: block;
-  box-shadow: 8px 8px 0 var(--hg-shadow-color);
+  box-shadow: var(--hg-elevation-2);
 }
 .pg .pg-stage { width: min(1000px, calc(100% - 36px)); margin: 4vh auto; }
 .pg .pg-topbar { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 14px; }

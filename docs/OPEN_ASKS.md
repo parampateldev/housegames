@@ -25,6 +25,29 @@ was deployed, so nothing gets dropped under time pressure. Newest at top.
       JavaScript origins" list, separate from Firebase's domain list).
       Needs a hard-refresh retry and the exact error text/domain to pin down.
 
+## Real Google-product dashboard, not just retheme colors
+The first retheme only swapped color/shadow tokens, the actual layout (a
+giant poster hero, italic display type, hard-offset shadows) still read as
+the old editorial site, not a Google product, which is what the user
+pointed at directly (`quant-lab`'s dashboard). Rebuilt the Home page to
+match `quant-lab`'s actual structure, not just its palette:
+- [x] Real sticky app bar (64px, white, bottom border) with a Google-style
+      multi-color-letter wordmark and a product badge pill, replacing the
+      plain text header
+- [x] A bordered "banner" card (title, description, stat pills) replacing
+      the full-height poster hero
+- [x] A proper card grid: each game gets a colored Material Symbols icon
+      badge, a plain bold title (not italic), a tag chip, and a "Play ->"
+      action link, replacing the flat cards with a hard offset shadow
+- [x] Loaded the real Material Symbols Outlined icon font (same one
+      `quant-lab` uses) instead of emoji or no icon at all
+- [x] Swept the one other leftover hard-offset shadow (Pictionary's
+      canvas) to the same soft elevation as everywhere else
+- Scoped down: each game's own pre-join "hero" screen (e.g. Mafia's
+  "Trust no one") keeps its existing italic-accent identity per game,
+  only the shared dashboard/app-shell chrome was rebuilt. Revisit if the
+  user wants that carried into the games themselves too.
+
 ## Mafia host customization
 - [x] Host can set the mafia count and toggle Doctor / Detective / Vigilante
       on or off from the lobby, before starting the game (`buildMafiaRoles`,
