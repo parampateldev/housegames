@@ -1,6 +1,6 @@
 import {
   createRoom, joinRoom, watchRoom, setPhase, saveSettings, updatePlayer, removePlayer, leaveRoom,
-  setSecret, getAllSecretsOnce, watchMySecret as watchMySecretGeneric,
+  setSecret, getAllSecretsOnce, watchMySecret as watchMySecretGeneric, watchAllSecrets,
   db, type BaseRoom,
 } from '@fb/index';
 import {
@@ -37,6 +37,11 @@ export function watchMafiaRoom(code: string, cb: (room: MafiaRoom | null) => voi
 
 export function watchMySecret(code: string, uid: string, cb: (s: MafiaSecret | null) => void) {
   return watchMySecretGeneric<MafiaSecret>(NS, code, uid, cb);
+}
+
+/** Host-only: reads every local (no-device) player's role/night-action state so the host can act for them. */
+export function watchLocalSecrets(code: string, localUids: string[], cb: (secrets: Record<string, MafiaSecret>) => void) {
+  return watchAllSecrets<MafiaSecret>(NS, code, localUids, cb);
 }
 
 async function getRoom(code: string): Promise<MafiaRoom | null> {

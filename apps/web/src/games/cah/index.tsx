@@ -7,6 +7,7 @@ import { set, ref } from 'firebase/database';
 import {
   createCAHRoom, joinCAHRoom, watchCAHRoom, startCAHGame, submitCard, beginJudging, pickWinner,
   watchVotes, clearVote, resolveWinner, nextRound, leaveCAHRoom, kickCAHPlayer, watchMyHand, watchJudging,
+  watchLocalHands,
   type CAHRoom, type CAHHandSecret, type CAHJudgeSecret,
 } from './firebase';
 import './cah.css';
@@ -33,6 +34,8 @@ function CAHApp({ uid, name }: { uid: string; name: string }) {
   const [error, setError] = useState('');
   const [hand, setHand] = useState<CAHHandSecret | null>(null);
   const [judging, setJudging] = useState<CAHJudgeSecret | null>(null);
+  const [localJudging, setLocalJudging] = useState<CAHJudgeSecret | null>(null);
+  const [localHands, setLocalHands] = useState<Record<string, CAHHandSecret>>({});
   const [votes, setVotes] = useState<Record<string, string>>({});
 
   const isHost = room?.hostId === uid;
@@ -48,6 +51,29 @@ function CAHApp({ uid, name }: { uid: string; name: string }) {
   useEffect(() => { if (code) return watchMyHand(code, uid, setHand); }, [code, uid, room?.phase]);
   useEffect(() => { if (code) return watchJudging(code, uid, setJudging); }, [code, uid, room?.phase]);
   useEffect(() => { if (code) return watchVotes(code, setVotes); }, [code]);
+
+  // Host-only: when the czar has no device, read their judging secret too, so the host can pick the winner for them.
+  const czarIsLocal = Boolean(room?.settings.czarId?.startsWith('local-'));
+  useEffect(() => {
+    if (!code || !isHost || !czarIsLocal || !room?.settings.czarId) { setLocalJudging(null); return; }
+    return watchJudging(code, room.settings.czarId, setLocalJudging);
+  }, [code, isHost, czarIsLocal, room?.settings.czarId]);
+
+  // Host-only: every local (no-device) non-czar player's hand, so the host can submit their card.
+  const localNonCzarUids = Object.keys(room?.players ?? {})
+    .filter((id) => id.startsWith('local-') && id !== room?.settings.czarId);
+  useEffect(() => {
+    if (!code || !isHost || room?.phase !== 'submitting' || localNonCzarUids.length === 0) { setLocalHands({}); return; }
+    return watchLocalHands(code, localNonCzarUids, setLocalHands);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [code, isHost, room?.phase, localNonCzarUids.join(',')]);
+
+  async function pickCardFor(targetUid: string, playerHand: string[], index: number) {
+    try {
+      await submitCard(code, targetUid, playerHand, index);
+      if (db) await set(ref(db, `cah/rooms/${code}/votes/${targetUid}`), '1');
+    } catch (e) { fail(e); }
+  }
 
   // Every player marks a public "submitted" flag via votes/$uid = '1' so the host can tell when everyone's in without reading secrets reactively.
   useEffect(() => {
@@ -190,14 +216,26 @@ function CAHApp({ uid, name }: { uid: string; name: string }) {
         <div className="black-card">{room.settings.blackCard}</div>
 
         {room.phase === 'submitting' && (
-          isCzar ? <p className="hg-note">You're the Czar this round, sit tight while everyone picks a card.</p> :
-          iSubmitted ? <p className="hg-note">Card submitted. Waiting on others…</p> : (
-            <div className="hand">
-              {hand?.hand.map((card, i) => (
-                <button key={i} className="white-card" onClick={() => pickCard(i)}>{card}</button>
-              ))}
-            </div>
-          )
+          <>
+            {isCzar ? <p className="hg-note">You're the Czar this round, sit tight while everyone picks a card.</p> :
+            iSubmitted ? <p className="hg-note">Card submitted. Waiting on others…</p> : (
+              <div className="hand">
+                {hand?.hand.map((card, i) => (
+                  <button key={i} className="white-card" onClick={() => pickCard(i)}>{card}</button>
+                ))}
+              </div>
+            )}
+            {isHost && localNonCzarUids.filter((id) => votes[id] !== '1' && localHands[id]).map((id) => (
+              <div key={id} style={{ marginTop: 16 }}>
+                <p className="hg-note">Submit for {players.find((p) => p.id === id)?.name ?? 'player'} (no phone):</p>
+                <div className="hand">
+                  {localHands[id].hand.map((card, i) => (
+                    <button key={i} className="white-card" onClick={() => pickCardFor(id, localHands[id].hand, i)}>{card}</button>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </>
         )}
 
         {room.phase === 'judging' && (
@@ -205,6 +243,13 @@ function CAHApp({ uid, name }: { uid: string; name: string }) {
             <div className="hand">
               {judging.cards.map((card, i) => (
                 <button key={i} className="white-card" onClick={() => pickWinner(code, uid, i).catch(fail)}>{card}</button>
+              ))}
+            </div>
+          ) : isHost && czarIsLocal && localJudging ? (
+            <div className="hand">
+              <p className="hg-note">Judging for {czar?.name} (no phone):</p>
+              {localJudging.cards.map((card, i) => (
+                <button key={i} className="white-card" onClick={() => pickWinner(code, room.settings.czarId!, i).catch(fail)}>{card}</button>
               ))}
             </div>
           ) : <p className="hg-note">{czar?.name} is judging…</p>

@@ -213,6 +213,7 @@ function App({ uid, name }: { uid: string; name: string }) {
   }
 
   const isPsychic = s?.psychicId === uid;
+  const psychicIsLocal = isHost && Boolean(s?.psychicId?.startsWith('local-'));
 
   if (room.phase === 'psychicSees' || room.phase === 'clueGiven') {
     return (
@@ -220,7 +221,9 @@ function App({ uid, name }: { uid: string; name: string }) {
         <section style={{ padding: '2vh clamp(18px,5vw,72px)' }}>
           <div className="spectrum"><span>{s?.spectrumLeft}</span><span>{s?.spectrumRight}</span></div>
           <div className="dial">
-            {isPsychic && target !== null && <div className="marker target" style={{ left: `${target}%` }} />}
+            {(isPsychic || psychicIsLocal) && (target !== null || localPsychicTarget !== null) && (
+              <div className="marker target" style={{ left: `${(isPsychic ? target : localPsychicTarget)}%` }} />
+            )}
           </div>
           {isPsychic ? (
             room.phase === 'psychicSees' ? (
@@ -230,6 +233,14 @@ function App({ uid, name }: { uid: string; name: string }) {
                 <Button wide onClick={sendClue} style={{ marginTop: 12 }}>Lock in clue</Button>
               </>
             ) : <p className="hg-note">Waiting for your team to guess…</p>
+          ) : psychicIsLocal ? (
+            room.phase === 'psychicSees' ? (
+              <>
+                <p className="hg-note">Giving the clue for {players.find((p) => p.id === s?.psychicId)?.name} (no phone). Target: {localPsychicTarget}.</p>
+                <Field label="Their clue"><TextInput value={clueDraft} onChange={(e) => setClueDraft(e.target.value)} /></Field>
+                <Button wide onClick={sendClue} style={{ marginTop: 12 }}>Lock in clue</Button>
+              </>
+            ) : <p className="hg-note">Waiting for the team to guess…</p>
           ) : (
             room.phase === 'clueGiven'
               ? <p className="hg-note">Clue: <b>{s?.clue}</b>, your team is guessing.</p>

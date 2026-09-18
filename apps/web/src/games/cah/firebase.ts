@@ -1,6 +1,6 @@
 import {
   createRoom, joinRoom, watchRoom, setPhase, saveSettings, removePlayer, leaveRoom,
-  setSecret, watchMySecret, getAllSecretsOnce,
+  setSecret, watchMySecret, getAllSecretsOnce, watchAllSecrets,
   db, type BaseRoom, type BasePlayer,
 } from '@fb/index';
 import { get, ref, set, onValue } from 'firebase/database';
@@ -49,6 +49,11 @@ export function watchCAHRoom(code: string, cb: (r: CAHRoom | null) => void, onEr
 }
 export function watchMyHand(code: string, uid: string, cb: (s: CAHHandSecret | null) => void) {
   return watchMySecret<CAHHandSecret>(NS, code, uid, cb);
+}
+
+/** Host-only: every local (no-device) player's hand, so the host can submit for them. */
+export function watchLocalHands(code: string, localUids: string[], cb: (hands: Record<string, CAHHandSecret>) => void) {
+  return watchAllSecrets<CAHHandSecret>(NS, code, localUids, cb);
 }
 export function watchJudging(code: string, uid: string, cb: (s: CAHJudgeSecret | null) => void) {
   return watchMySecret<CAHJudgeSecret>(NS, code, uid, cb);
