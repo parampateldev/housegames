@@ -186,7 +186,7 @@ function CAHApp({ uid, name }: { uid: string; name: string }) {
       <main>{Header}
         <RoomHeader gameLabel="Cards Against Humanity" code={code} shareUrl={share} />
         <Card>
-          <div className="scoreboard">{players.map((p) => <div key={p.id} className="row"><span>{p.name}{p.id === room.hostId ? ' 👑' : ''}</span><span>{p.score}</span></div>)}</div>
+          <div className="scoreboard">{players.map((p) => <div key={p.id} className="row"><span>{p.name}{p.id === room.hostId ? ' (host)' : ''}</span><span>{p.score}</span></div>)}</div>
           <PlayerManager
             players={players}
             hostId={room.hostId}

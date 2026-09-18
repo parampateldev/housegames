@@ -3,6 +3,28 @@
 Tracking the mid-build requests that came in after the initial 12-game platform
 was deployed, so nothing gets dropped under time pressure. Newest at top.
 
+## Host display name: "Host" instead of the name I typed
+- [x] **Root cause**: `ensureProfile` is create-once (skips writing if a
+      profile already exists). On email sign-up, `onAuthStateChanged` fires
+      with the new user as soon as the account is created, before
+      `updateProfile(cred.user, {displayName})` (a separate, later await)
+      has applied the real name, so the generic auth-state effect's
+      `ensureProfile(uid, user.displayName ?? 'Host')` can win the race and
+      permanently lock in `'Host'`, since nothing ever revisited it after.
+      Reproduced live: a fresh email sign-up showed "Hosting as Host".
+- [x] Fixed the race: added `upsertDisplayName` (unconditionally sets the
+      name, creating the profile if missing, unlike the create-once
+      `ensureProfile`), called right after `signUpEmail` resolves so the
+      name the host actually typed always wins regardless of ordering.
+- [x] Also removed the crown emoji (`👑`) next to the host's name across
+      every game, per request; `PlayerList` and CAH's scoreboard now show
+      a plain "(host)" suffix instead, so host status doesn't just vanish.
+- [x] Added a real fix for existing accounts already stuck on "Host" (or
+      anyone who just wants a different display name): an "Edit name"
+      control on the account screen, backed by the same `upsertDisplayName`.
+      Verified end-to-end: renamed via the account screen, then hosted a
+      real Empire room and confirmed the new name appears in the player list.
+
 ## Rebrand and Google Material retheme
 - [x] Retheme to a Google Material 3 look (from the user's `quant-lab`
       reference), applied almost entirely through `packages/shared-ui/src/tokens.css`

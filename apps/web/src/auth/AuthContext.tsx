@@ -2,7 +2,7 @@ import {
   createContext, useContext, useEffect, useState, type ReactNode,
 } from 'react';
 import {
-  watchAuth, isHostEligible, ensureProfile, watchProfile,
+  watchAuth, isHostEligible, ensureProfile, upsertDisplayName, watchProfile,
   signInWithGoogle, signUpWithEmail, signInWithEmail, signInAsGuest, signOutUser,
   type User, type UserProfile,
 } from '@fb/index';
@@ -18,6 +18,7 @@ type AuthState = {
   signUpEmail: (email: string, password: string, displayName: string) => Promise<void>;
   signInEmail: (email: string, password: string) => Promise<void>;
   continueAsGuest: () => Promise<void>;
+  updateDisplayName: (name: string) => Promise<void>;
   signOut: () => Promise<void>;
 };
 
@@ -52,9 +53,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     guestName,
     setGuestName,
     async signInGoogle() { await signInWithGoogle(); },
-    async signUpEmail(email, password, displayName) { await signUpWithEmail(email, password, displayName); },
+    async signUpEmail(email, password, displayName) {
+      const u = await signUpWithEmail(email, password, displayName);
+      // The auth-state listener's own ensureProfile('Host') can race this and
+      // land first; this unconditional write always wins, so the name the
+      // host actually typed is what sticks.
+      await upsertDisplayName(u.uid, displayName);
+    },
     async signInEmail(email, password) { await signInWithEmail(email, password); },
     async continueAsGuest() { await signInAsGuest(); },
+    async updateDisplayName(name) { if (user) await upsertDisplayName(user.uid, name); },
     async signOut() { await signOutUser(); },
   };
 
