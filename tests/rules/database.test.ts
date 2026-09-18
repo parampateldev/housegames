@@ -75,7 +75,7 @@ describe('room creation & host handoff', () => {
     await assertFails(stranger.ref(`${NS}/rooms/${ROOM}/createdAt`).set(Date.now()));
   });
 
-  it('a non-host PLAYER can write phase/settings/state (the active-player fix) — a non-player stranger still cannot', async () => {
+  it('a non-host PLAYER can write phase/settings/state (the active-player fix), a non-player stranger still cannot', async () => {
     // Regression test: Codenames' spymaster, Wavelength's psychic, Secret
     // Hitler's president are usually not the room host, but they need to
     // write shared round state (a clue, a guess, a policy). Before this

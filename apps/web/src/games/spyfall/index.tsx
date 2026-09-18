@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams, Link } from 'react-router-dom';
-import { Button, Card, Field, TextInput, ErrorText, Timer, QR, PlayerList, VoteGrid, useToast } from '@ui/index';
+import { Button, Card, Field, TextInput, ErrorText, Timer, PlayerList, VoteGrid, useToast, RoomHeader, PlayerManager } from '@ui/index';
 import { RequireIdentity } from '../../auth/RequireIdentity';
-import { randomRoomCode, isValidRoomCode, getAllSecretsOnce } from '@fb/index';
+import { randomRoomCode, isValidRoomCode, getAllSecretsOnce, makeHost, addLocalPlayer } from '@fb/index';
 import {
   createSpyfallRoom, joinSpyfallRoom, watchSpyfallRoom, watchMySecretRole,
   dealAndStart, castVote, clearVotes, revealLocationToAll, advancePhase,
@@ -160,9 +160,16 @@ function App({ uid, name }: { uid: string; name: string }) {
     return (
       <main>{Header}
         <Card>
-          <div className="room-head"><div className="hg-eyebrow">Room {code}</div>{share && <QR url={share} size={110} />}</div>
-          <button className="mini" onClick={() => { navigator.clipboard.writeText(share); toast('Link copied'); }} style={{ marginBottom: 16 }}>Copy link</button>
+          <RoomHeader gameLabel="Spyfall" code={code} shareUrl={share} />
           <PlayerList players={players} hostId={room.hostId} />
+          <PlayerManager
+            players={players}
+            hostId={room.hostId}
+            isHost={isHost}
+            onMakeHost={(target) => makeHost('spyfall', code, uid, target).catch(fail)}
+            onRemove={(target) => kickSpyfallPlayer(code, uid, target).catch(fail)}
+            onAddLocal={(n) => addLocalPlayer('spyfall', code, uid, n, (id, nm) => ({ id, name: nm })).catch(fail)}
+          />
           {isHost && (
             <>
               <Field label={`Discussion timer, ${timerMinutes} min`}>

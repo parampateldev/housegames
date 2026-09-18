@@ -1,5 +1,5 @@
 import {
-  createRoom, joinRoom, watchRoom, setPhase, saveSettings, updatePlayer, leaveRoom,
+  createRoom, joinRoom, watchRoom, setPhase, saveSettings, updatePlayer, leaveRoom, removePlayer,
   setSecretsForMany, getAllSecretsOnce, watchMySecret as watchMySecretPrimitive,
   db, type BaseRoom,
 } from '@fb/index';
@@ -60,6 +60,10 @@ export async function clearVotes(code: string) {
 
 export async function leaveImposterRoom(code: string, uid: string) {
   await leaveRoom(NS, code, uid, [`${NS}/secrets/${code}/${uid}`]);
+}
+
+export async function kickImposterPlayer(code: string, hostId: string, targetUid: string) {
+  await removePlayer(NS, code, hostId, targetUid);
 }
 
 export async function getRoomOnce(code: string): Promise<ImposterRoom | null> {
