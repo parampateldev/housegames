@@ -48,16 +48,55 @@ match `quant-lab`'s actual structure, not just its palette:
   only the shared dashboard/app-shell chrome was rebuilt. Revisit if the
   user wants that carried into the games themselves too.
 
-## Mafia host customization
-- [x] Host can set the mafia count and toggle Doctor / Detective / Vigilante
-      on or off from the lobby, before starting the game (`buildMafiaRoles`,
-      `recommendedMafiaOptions` in the elimination engine); villagers fill
-      whatever's left, with validation so mafia can never start equal to or
-      outnumbering the town
-- [x] Added a Vigilante role (one bullet for the whole game, blockable by
-      the doctor same as the mafia's own kill) as a common, standard option
-      for larger rooms; replaced a copy-pasted-from-Werewolf Witch branch
-      that mafia's role table could never actually produce
+## Mafia: full custom role editor ("I don't even know what vigilante is")
+The first pass only let the host toggle a fixed handful of preset roles
+on/off. The ask was for real customization: rename/retype roles, add and
+remove them freely, and a "create a role" button. Rebuilt the whole
+role system around it:
+- [x] Generalized the shared elimination engine from a closed set of five
+      named roles to a `behavior`-driven model (`kill`, `solo-kill`,
+      `poison`, `investigate`, `protect`, `extra-vote`, `none`); a role is
+      now just a host-typed name plus a team plus one or more behaviors,
+      not a fixed identity the engine has to know about in advance
+- [x] Mafia's lobby has a real role editor: presets (Mafia, Police,
+      Doctor, Vigilante, Mayor, Townie) to quick-add, a count stepper and
+      remove button per role, and a "+ Create a role" form (name, town or
+      mafia team, one of the six behaviors) for anything the presets don't
+      cover. Live validation blocks starting until the roster adds up to
+      exactly the player count with at least one mafia-team role that
+      can't start equal to or outnumbering the town
+- [x] Added Mayor (`extra-vote`: no night power, day vote counts twice)
+      as a new behavior, on top of Vigilante from the earlier pass
+- [x] Renamed Detective/Villager to Police/Townie by default, per the ask,
+      while presets stay fully renameable/removable since names are just
+      host-typed text now
+- [x] Werewolf was migrated onto the same generalized engine (it keeps its
+      own fixed roster, not the free-form editor) since both games share
+      one engine; its Witch (two behaviors on one role: protect + poison,
+      the poison unblockable unlike Vigilante's solo-kill) verified this
+      migration doesn't collapse the "one role, two independent powers"
+      case down to "one behavior per role"
+- [x] Live-reproduced full Mafia and Werewolf games end-to-end (role
+      assignment, night actions, resolve, day, vote, resolve, game over)
+      against the real local Firebase project after the rewrite
+
+## Bugs found via that live reproduction, not code review
+- [x] **`votes` node could never be cleared.** `startVote`/`resolveVote`
+      call `remove()` on the whole `.../rooms/$room/votes` node, but the
+      generated rules only ever granted `.write` on `votes/$uid`, one
+      level too deep, Firebase doesn't grant a parent-path write just
+      because every child would itself allow it. Result: "Start the vote"
+      silently failed with `permission_denied` in Mafia AND Werewolf,
+      apparently since this pattern was introduced, never caught before
+      because no test (unit, rules-emulator, or manual) had ever clicked
+      through an entire game to the vote phase. Fixed by adding a host-only
+      `.write` at the `votes` node itself in `build-rules.mjs`, redeployed
+      to the live project, regression-tested in the emulator suite.
+- [x] **Dead players never showed as eliminated.** The shared `PlayerList`
+      component only checked `p.eliminated`; Mafia, Werewolf, and Secret
+      Hitler's player type uses `alive` instead, so their roster never
+      struck through anyone even after they died. Fixed by having
+      `PlayerList` accept either shape.
 
 ## Auth hardening
 - [x] Email format validation on sign-up (rejects obviously-fake input,
