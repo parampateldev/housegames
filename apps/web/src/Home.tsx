@@ -1,10 +1,21 @@
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { GAMES } from './games/registry';
+import { GAMES, findGame } from './games/registry';
 import { useAuth } from './auth/AuthContext';
 import { Button } from '@ui/index';
+import { watchProfile, type RecentRoom } from '@fb/index';
 
 export function Home() {
   const { user, isHost, loading, signOut } = useAuth();
+  const [recentRooms, setRecentRooms] = useState<RecentRoom[]>([]);
+
+  useEffect(() => {
+    if (!user || !isHost) { setRecentRooms([]); return; }
+    return watchProfile(user.uid, (profile) => {
+      const rooms = Object.values(profile?.recentRooms ?? {}).sort((a, b) => b.at - a.at);
+      setRecentRooms(rooms);
+    });
+  }, [user, isHost]);
 
   return (
     <main>
@@ -29,6 +40,33 @@ export function Home() {
           Sign in to host a room, or jump straight in as a guest with just a name. Pick a game below.
         </p>
       </div>
+
+      {isHost && recentRooms.length > 0 && (
+        <div style={{ padding: '0 clamp(22px,8vw,130px) 2vh' }}>
+          <h3 style={{ fontSize: 13, textTransform: 'uppercase', letterSpacing: '.08em', color: 'var(--hg-muted)', marginBottom: 10 }}>
+            Your recent rooms
+          </h3>
+          <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+            {recentRooms.map((r) => {
+              const game = findGame(r.gameSlug);
+              if (!game) return null;
+              return (
+                <Link
+                  key={`${r.gameSlug}_${r.code}`}
+                  to={`/${r.gameSlug}/${r.code}`}
+                  style={{
+                    textDecoration: 'none', color: 'inherit', background: 'var(--hg-card)',
+                    border: '1px solid var(--hg-border)', padding: '10px 16px', borderRadius: 999,
+                    fontSize: 13,
+                  }}
+                >
+                  {game.label} · {r.code}
+                </Link>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       <div style={{
         display: 'grid',

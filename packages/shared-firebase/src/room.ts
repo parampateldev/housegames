@@ -1,7 +1,8 @@
 import {
   ref, set, update, get, remove, onValue, type Database,
 } from 'firebase/database';
-import { db } from './firebase';
+import { db, auth } from './firebase';
+import { recordRecentRoom } from './users';
 
 export type BasePlayer = { id: string; name: string; connected?: boolean };
 
@@ -20,6 +21,18 @@ function requireDb(): Database {
 
 export const roomPath = (ns: string, code: string) => `${ns}/rooms/${code}`;
 export const roomRef = (ns: string, code: string) => ref(requireDb(), roomPath(ns, code));
+
+/**
+ * Every game's createRoom/joinRoom funnels through here so "recent rooms"
+ * on the dashboard works platform-wide with no per-game wiring. Silent
+ * no-op for guests (no persistent profile to attach it to) and never
+ * throws — a failed recent-room write must never block joining a room.
+ */
+function rememberRoomForSignedInUser(ns: string, code: string, role: 'host' | 'guest') {
+  const user = auth?.currentUser;
+  if (!user || user.isAnonymous) return;
+  recordRecentRoom(user.uid, { gameSlug: ns, code, role, at: Date.now() }).catch(() => {});
+}
 
 export function watchRoom<R extends BaseRoom<unknown>>(
   ns: string,
@@ -50,10 +63,12 @@ export async function createRoom<Settings, Player extends BasePlayer>(
     [`${roomPath(ns, code)}/settings`]: settings,
     [`${roomPath(ns, code)}/players/${hostId}`]: hostPlayer,
   });
+  rememberRoomForSignedInUser(ns, code, 'host');
 }
 
 export async function joinRoom<Player extends BasePlayer>(ns: string, code: string, player: Player): Promise<void> {
   await set(ref(requireDb(), `${roomPath(ns, code)}/players/${player.id}`), player);
+  rememberRoomForSignedInUser(ns, code, 'guest');
 }
 
 export async function roomExists(ns: string, code: string): Promise<boolean> {
@@ -96,6 +111,34 @@ export async function updatePlayer<Player extends BasePlayer>(
   patch: Partial<Player>,
 ): Promise<void> {
   await update(ref(requireDb(), `${roomPath(ns, code)}/players/${uid}`), patch);
+}
+
+/** Hands host to any uid already in the room — the rules require the target to be a current player. */
+export async function makeHost(ns: string, code: string, currentHostId: string, targetUid: string): Promise<void> {
+  const snap = await get(roomRef(ns, code));
+  const room = snap.val() as BaseRoom<unknown> | null;
+  if (room?.hostId !== currentHostId) throw new Error('Only the host can hand off host');
+  if (!room.players?.[targetUid]) throw new Error('That player is not in the room');
+  await set(ref(requireDb(), `${roomPath(ns, code)}/hostId`), targetUid);
+}
+
+/**
+ * A player with no device of their own: the host adds them by name only.
+ * They get a synthetic id the host can write on their behalf anywhere a
+ * normal player's own uid would be used (the security rules already grant
+ * the host read/write on any uid's player/secret data, so no rule changes
+ * are needed here).
+ */
+export async function addLocalPlayer<Player extends BasePlayer>(
+  ns: string,
+  code: string,
+  hostId: string,
+  name: string,
+  makePlayer: (id: string, name: string) => Player,
+): Promise<string> {
+  const localId = `local-${Math.random().toString(36).slice(2, 10)}`;
+  await joinRoom(ns, code, makePlayer(localId, name));
+  return localId;
 }
 
 export async function removePlayer(ns: string, code: string, hostId: string, targetUid: string): Promise<void> {
