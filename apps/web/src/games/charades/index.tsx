@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams, Link } from 'react-router-dom';
-import { Button, Card, Field, TextInput, ErrorText, PlayerList, Timer, RoomHeader, PlayerManager, useToast } from '@ui/index';
+import { Button, Card, Field, TextInput, ErrorText, PlayerList, Timer, RoomHeader, PlayerManager, HelpModal, useToast } from '@ui/index';
 import { RequireIdentity } from '../../auth/RequireIdentity';
 import { randomRoomCode, isValidRoomCode, saveSettings, makeHost, addLocalPlayer } from '@fb/index';
 import {
@@ -109,6 +109,15 @@ function App({ uid, name }: { uid: string; name: string }) {
   const Header = (
     <header style={{ padding: '22px clamp(18px,5vw,72px)', display: 'flex', justifyContent: 'space-between' }}>
       <Link to="/" style={{ fontWeight: 700, textDecoration: 'none', color: 'inherit', textTransform: 'uppercase', letterSpacing: '.14em', fontSize: 12 }}>Charades</Link>
+      <HelpModal title="Charades">
+        <ol>
+          <li><b>Split into teams.</b> One player per team is the Actor for the round and gets a secret word or phrase only they can see.</li>
+          <li><b>Act it out.</b> Silently, no props, no talking, no mouthing words, while their team shouts guesses.</li>
+          <li><b>Score it.</b> A correct guess before time runs out scores a point and ends the round.</li>
+          <li><b>Pass the Actor role</b> to someone new each round.</li>
+          <li><b>Win it.</b> Whichever team reaches the target score first, or has the most points when you stop, wins.</li>
+        </ol>
+      </HelpModal>
     </header>
   );
 

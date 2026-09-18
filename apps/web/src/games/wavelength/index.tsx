@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams, Link } from 'react-router-dom';
-import { Button, Card, Field, TextInput, ErrorText, PlayerList, RoomHeader, PlayerManager } from '@ui/index';
+import { Button, Card, Field, TextInput, ErrorText, PlayerList, RoomHeader, PlayerManager, HelpModal } from '@ui/index';
 import { RequireIdentity } from '../../auth/RequireIdentity';
 import { randomRoomCode, isValidRoomCode, makeHost, addLocalPlayer } from '@fb/index';
 import {
@@ -124,6 +124,15 @@ function App({ uid, name }: { uid: string; name: string }) {
   const Header = (
     <header style={{ padding: '22px clamp(18px,5vw,72px)', display: 'flex', justifyContent: 'space-between' }}>
       <Link to="/" style={{ fontWeight: 700, textDecoration: 'none', color: 'inherit', textTransform: 'uppercase', letterSpacing: '.14em', fontSize: 12 }}>Wavelength</Link>
+      <HelpModal title="Wavelength">
+        <ol>
+          <li><b>Split into teams</b> and reveal a spectrum with two opposite concepts at either end, say "Overrated" to "Underrated." Each round, one player is the Psychic.</li>
+          <li><b>Only the Psychic sees the hidden target</b>, a point somewhere on that spectrum. They give one clue meant to describe that exact point.</li>
+          <li><b>Guess it.</b> Their team discusses and places a guess on the spectrum based on the clue.</li>
+          <li><b>Call it.</b> The other team calls whether the true target is left or right of that guess, for a bonus point if they're right.</li>
+          <li><b>Score it,</b> based on how close the guess lands to the real target, then pass the Psychic role and reveal a new spectrum.</li>
+        </ol>
+      </HelpModal>
     </header>
   );
 

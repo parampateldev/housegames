@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams, Link } from 'react-router-dom';
-import { Button, Card, Field, TextInput, ErrorText, PlayerList, useToast, RoomHeader, PlayerManager } from '@ui/index';
+import { Button, Card, Field, TextInput, ErrorText, PlayerList, useToast, RoomHeader, PlayerManager, HelpModal } from '@ui/index';
 import { RequireIdentity } from '../../auth/RequireIdentity';
 import { randomRoomCode, isValidRoomCode, makeHost, addLocalPlayer } from '@fb/index';
 import {
@@ -105,7 +105,18 @@ function SHApp({ uid, name }: { uid: string; name: string }) {
   const Header = (
     <header style={{ padding: '22px clamp(18px,5vw,72px)', display: 'flex', justifyContent: 'space-between' }}>
       <Link to="/" style={{ fontWeight: 700, textDecoration: 'none', color: 'inherit', textTransform: 'uppercase', letterSpacing: '.14em', fontSize: 12 }}>Secret Hitler</Link>
-      {code && <Button small ghost onClick={leave}>Leave</Button>}
+      <div style={{ display: 'flex', gap: 8 }}>
+        <HelpModal title="Secret Hitler">
+          <ol>
+            <li><b>Every player is secretly Liberal or Fascist</b>, and one Fascist is secretly Hitler. At 5 to 6 players, Hitler knows who the other Fascists are. At 7 or more, Hitler does not.</li>
+            <li><b>Nominate a government.</b> Each round, a President nominates a Chancellor, then everyone votes yes or no on the pair.</li>
+            <li><b>Enact a policy.</b> If elected, the President draws 3 policy tiles, discards 1, and passes 2 to the Chancellor, who discards 1 and enacts the last one, publicly, as a Liberal or Fascist policy.</li>
+            <li><b>Three failed elections in a row</b> force the top policy to be enacted automatically, and play continues.</li>
+            <li><b>Win it.</b> Liberals win by enacting 5 Liberal policies, or by assassinating Hitler. Fascists win by enacting 6 Fascist policies, or by getting Hitler elected Chancellor after 3 Fascist policies are already in play.</li>
+          </ol>
+        </HelpModal>
+        {code && <Button small ghost onClick={leave}>Leave</Button>}
+      </div>
     </header>
   );
 

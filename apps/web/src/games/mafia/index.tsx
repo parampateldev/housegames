@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams, Link } from 'react-router-dom';
 import {
-  Button, Card, ErrorText, PlayerList, VoteGrid, useToast, RoomHeader, PlayerManager,
+  Button, Card, ErrorText, PlayerList, VoteGrid, useToast, RoomHeader, PlayerManager, HelpModal,
 } from '@ui/index';
 import { randomRoomCode, isValidRoomCode, makeHost, addLocalPlayer } from '@fb/index';
 import { RequireIdentity } from '../../auth/RequireIdentity';
@@ -83,6 +83,15 @@ function MafiaApp({ uid, name }: { uid: string; name: string }) {
   const Header = (
     <header style={{ padding: '22px clamp(18px,5vw,72px)', display: 'flex', justifyContent: 'space-between' }}>
       <Link to="/" style={{ fontWeight: 700, textDecoration: 'none', color: 'inherit', textTransform: 'uppercase', letterSpacing: '.14em', fontSize: 12 }}>Mafia</Link>
+      <HelpModal title="Mafia">
+        <ol>
+          <li><b>Roles are dealt in secret.</b> A minority of players are secretly Mafia. Everyone else is an innocent Villager. Larger games also get a Doctor, who can save someone each night, and a Detective, who can investigate one player each night.</li>
+          <li><b>Night falls.</b> The Mafia silently choose someone to eliminate. The Doctor may protect one player. The Detective learns whether one player is Mafia or innocent.</li>
+          <li><b>Day breaks.</b> Whoever died overnight is announced. Everyone discusses who they suspect, then votes to eliminate one player.</li>
+          <li><b>The accused is out</b>, Mafia or innocent. Repeat night and day.</li>
+          <li><b>Win it.</b> The Village wins once every Mafia member is gone. The Mafia win once they equal or outnumber the Village.</li>
+        </ol>
+      </HelpModal>
     </header>
   );
 

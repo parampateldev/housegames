@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams, Link } from 'react-router-dom';
 import {
-  Button, Card, Field, TextInput, ErrorText, PlayerList, useToast, RoomHeader, PlayerManager,
+  Button, Card, Field, TextInput, ErrorText, PlayerList, useToast, RoomHeader, PlayerManager, HelpModal,
 } from '@ui/index';
 import { RequireIdentity } from '../../auth/RequireIdentity';
 import { randomRoomCode, isValidRoomCode, makeHost, addLocalPlayer } from '@fb/index';
@@ -90,7 +90,18 @@ function CNApp({ uid, name }: { uid: string; name: string }) {
   const Header = (
     <header style={{ padding: '22px clamp(18px,5vw,72px)', display: 'flex', justifyContent: 'space-between' }}>
       <Link to="/" style={{ fontWeight: 700, textDecoration: 'none', color: 'inherit', textTransform: 'uppercase', letterSpacing: '.14em', fontSize: 12 }}>Codenames</Link>
-      {code && <Button small ghost onClick={leave}>Leave</Button>}
+      <div style={{ display: 'flex', gap: 8 }}>
+        <HelpModal title="Codenames">
+          <ol>
+            <li><b>Two teams, Red and Blue,</b> each choose one Spymaster. The rest of each team are Operatives.</li>
+            <li><b>Only the two Spymasters see the key</b>, which of the 25 words on the board belong to their team, the other team, innocent bystanders, or the single Assassin.</li>
+            <li><b>Give a clue.</b> On your team's turn, your Spymaster gives one word and a number, meant to point at that many of your team's words.</li>
+            <li><b>Guess.</b> Operatives tap words they think match. A correct guess lets you keep guessing, up to your clue's number plus one. A wrong guess ends your turn.</li>
+            <li><b>Win it.</b> Find every one of your team's words before the other team does. Never tap the Assassin, that ends the game instantly for your team.</li>
+          </ol>
+        </HelpModal>
+        {code && <Button small ghost onClick={leave}>Leave</Button>}
+      </div>
     </header>
   );
 

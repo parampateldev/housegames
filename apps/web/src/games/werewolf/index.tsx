@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams, Link } from 'react-router-dom';
 import {
-  Button, Card, ErrorText, PlayerList, VoteGrid, useToast, RoomHeader, PlayerManager,
+  Button, Card, ErrorText, PlayerList, VoteGrid, useToast, RoomHeader, PlayerManager, HelpModal,
 } from '@ui/index';
 import { randomRoomCode, isValidRoomCode, makeHost, addLocalPlayer } from '@fb/index';
 import { RequireIdentity } from '../../auth/RequireIdentity';
@@ -83,6 +83,15 @@ function WerewolfApp({ uid, name }: { uid: string; name: string }) {
   const Header = (
     <header style={{ padding: '22px clamp(18px,5vw,72px)', display: 'flex', justifyContent: 'space-between' }}>
       <Link to="/" style={{ fontWeight: 700, textDecoration: 'none', color: 'inherit', textTransform: 'uppercase', letterSpacing: '.14em', fontSize: 12 }}>Werewolf</Link>
+      <HelpModal title="Werewolf">
+        <ol>
+          <li><b>Roles are dealt in secret.</b> A minority of players are secretly Werewolves. Everyone else is a Villager. Larger games also get a Seer, who checks one player each night, and, at 7 or more players, a Witch with one healing potion and one poison, each usable once across the whole game.</li>
+          <li><b>Night falls.</b> The Werewolves silently choose a victim. The Seer learns if one player is a Werewolf. The Witch may use her save or her poison, on any night she chooses.</li>
+          <li><b>Day breaks.</b> Whoever died overnight is revealed. The village debates and votes to hang one suspect.</li>
+          <li><b>That player is eliminated</b>, whatever they were. Repeat night and day.</li>
+          <li><b>Win it.</b> The Village wins once every Werewolf is gone. The Werewolves win once they equal or outnumber the Village.</li>
+        </ol>
+      </HelpModal>
     </header>
   );
 
