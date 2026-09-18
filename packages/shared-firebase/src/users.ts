@@ -3,7 +3,6 @@ import { db } from './firebase';
 
 export type RecentRoom = {
   gameSlug: string;
-  gameLabel: string;
   code: string;
   role: 'host' | 'guest';
   at: number;
