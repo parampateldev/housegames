@@ -4,6 +4,50 @@ import { Card, BackLink, Button, Field, TextInput, ErrorText } from '@ui/index';
 import { isPlausibleEmail, passwordStrength, type PasswordStrength } from '@fb/index';
 import { useAuth } from './AuthContext';
 
+function EditableName() {
+  const { user, profile, updateDisplayName } = useAuth();
+  const currentName = profile?.displayName ?? user?.displayName ?? '';
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState(currentName);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState('');
+
+  if (!editing) {
+    return (
+      <div className="hg-row" style={{ marginTop: 4 }}>
+        <p className="hg-note" style={{ margin: 0 }}>Hosting as <b>{currentName}</b></p>
+        <Button ghost small onClick={() => { setDraft(currentName); setEditing(true); }}>Edit name</Button>
+      </div>
+    );
+  }
+
+  async function save() {
+    const trimmed = draft.trim();
+    if (trimmed.length < 1 || trimmed.length > 20) { setError('Name must be 1-20 characters'); return; }
+    setBusy(true);
+    setError('');
+    try {
+      await updateDisplayName(trimmed);
+      setEditing(false);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Could not save name');
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <div style={{ marginTop: 4 }}>
+      <TextInput value={draft} onChange={(e) => setDraft(e.target.value)} placeholder="Your name" maxLength={20} onKeyDown={(e) => e.key === 'Enter' && save()} />
+      <ErrorText>{error}</ErrorText>
+      <div className="hg-row" style={{ marginTop: 10 }}>
+        <Button small disabled={busy} onClick={save}>Save name</Button>
+        <Button ghost small onClick={() => setEditing(false)}>Cancel</Button>
+      </div>
+    </div>
+  );
+}
+
 const STRENGTH_COPY: Record<PasswordStrength, { label: string; color: string; width: string }> = {
   weak: { label: 'Weak', color: 'var(--hg-error)', width: '33%' },
   medium: { label: 'Medium', color: 'var(--hg-highlight)', width: '66%' },
@@ -40,7 +84,8 @@ export function AccountScreen() {
       <Card>
         <BackLink onClick={() => nav('/')} />
         <h2 style={{ fontFamily: 'var(--hg-font-display)', fontStyle: 'italic' }}>You're signed in</h2>
-        <p className="hg-note">{user.displayName ?? user.email}</p>
+        {user.email && <p className="hg-note" style={{ margin: 0 }}>{user.email}</p>}
+        <EditableName />
         {!user.emailVerified && user.email && (
           <p className="hg-note" style={{ color: 'var(--hg-highlight)' }}>
             Check {user.email} for a verification link. Your account works right away either way.

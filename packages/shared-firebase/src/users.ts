@@ -37,6 +37,25 @@ export async function ensureProfile(uid: string, displayName: string): Promise<v
   await set(ref(database, `users/${uid}`), profile);
 }
 
+/**
+ * Sets displayName regardless of whether a profile already exists, creating
+ * one (with an avatar color) if needed. Unlike ensureProfile, this always
+ * wins: used right after signup to fix the race where the auth-state
+ * listener's generic ensureProfile('Host') call can land in the database
+ * before updateProfile's real name does, and used for a signed-in host
+ * editing their own name later.
+ */
+export async function upsertDisplayName(uid: string, displayName: string): Promise<void> {
+  const database = requireDb();
+  const snap = await get(ref(database, `users/${uid}`));
+  if (!snap.exists()) {
+    const profile: UserProfile = { displayName, avatarColor: pickAvatarColor(uid) };
+    await set(ref(database, `users/${uid}`), profile);
+  } else {
+    await update(ref(database, `users/${uid}`), { displayName });
+  }
+}
+
 export function watchProfile(uid: string, cb: (profile: UserProfile | null) => void): () => void {
   return onValue(ref(requireDb(), `users/${uid}`), (snap) => cb(snap.val() as UserProfile | null));
 }

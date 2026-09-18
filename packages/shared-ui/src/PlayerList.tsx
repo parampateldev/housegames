@@ -16,7 +16,7 @@ export function PlayerList<T extends { id: string; name: string; eliminated?: bo
         const isOut = p.eliminated ?? p.alive === false;
         return (
           <li key={p.id} className={isOut ? 'eliminated' : ''}>
-            <span>{p.name}{p.id === hostId ? ' 👑' : ''}</span>
+            <span>{p.name}{p.id === hostId ? ' (host)' : ''}</span>
             {rightSlot ? <span>{rightSlot(p)}</span> : null}
           </li>
         );
