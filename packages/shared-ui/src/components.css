@@ -148,3 +148,60 @@
    scoped .hero rule (every game does today, but this is the safety net
    for the next one that forgets, or the one that already did). */
 .hero { min-height: calc(100vh - 120px); padding: 8vh clamp(22px,8vw,130px); display: flex; flex-direction: column; justify-content: center; }
+
+/* Dashboard chrome: a real app bar + banner + card grid, not a poster hero.
+   Mirrors the Google-product layout this whole retheme is chasing. */
+.material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; line-height: 1; vertical-align: middle; }
+
+.hg-appbar {
+  height: 64px; background: var(--hg-card); border-bottom: 1px solid var(--hg-border);
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 clamp(18px, 5vw, 40px); position: sticky; top: 0; z-index: 10;
+}
+.hg-appbar-left { display: flex; align-items: center; gap: 12px; }
+.hg-logo { font-size: 22px; font-weight: 700; letter-spacing: -.5px; font-family: var(--hg-font-display); }
+.hg-logo b { font-weight: 700; }
+.hg-logo .c1 { color: var(--hg-rust); }
+.hg-logo .c2 { color: var(--hg-error); }
+.hg-logo .c3 { color: var(--hg-highlight); }
+.hg-logo .c4 { color: var(--hg-rust); }
+.hg-logo .c5 { color: var(--hg-success); }
+.hg-appbar-badge { background: var(--hg-bg); color: var(--hg-muted); font-size: 11px; font-weight: 500; padding: 3px 10px; border-radius: 999px; border: 1px solid var(--hg-border); }
+
+.hg-shell { max-width: 1200px; margin: 0 auto; padding: 24px clamp(18px, 5vw, 40px) 64px; }
+
+.hg-banner {
+  background: var(--hg-card); border: 1px solid var(--hg-border); border-radius: 12px;
+  padding: 24px 32px; margin-bottom: 24px; box-shadow: var(--hg-elevation-1);
+  display: flex; align-items: center; justify-content: space-between; gap: 24px; flex-wrap: wrap;
+}
+.hg-banner h1 { font-size: 24px; font-weight: 700; margin: 0 0 6px; }
+.hg-banner p { color: var(--hg-muted); font-size: 14px; max-width: 620px; margin: 0; }
+.hg-banner-stats { display: flex; gap: 16px; flex-wrap: wrap; }
+.hg-stat-pill { background: var(--hg-bg); border: 1px solid var(--hg-border); border-radius: 8px; padding: 10px 16px; text-align: center; min-width: 84px; }
+.hg-stat-pill .num { display: block; font-size: 20px; font-weight: 700; color: var(--hg-rust); }
+.hg-stat-pill .label { font-size: 11px; color: var(--hg-muted); font-weight: 500; text-transform: uppercase; letter-spacing: .02em; }
+
+.hg-game-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; }
+.hg-game-card {
+  background: var(--hg-card); border: 1px solid var(--hg-border); border-radius: 12px; padding: 20px;
+  box-shadow: var(--hg-elevation-1); text-decoration: none; color: inherit;
+  display: flex; flex-direction: column; justify-content: space-between; gap: 14px;
+  transition: transform .15s ease, box-shadow .15s ease, border-color .15s ease;
+}
+.hg-game-card:hover { transform: translateY(-2px); box-shadow: var(--hg-elevation-2); border-color: var(--hg-rust); }
+.hg-game-card-head { display: flex; align-items: center; gap: 14px; }
+.hg-card-icon { width: 42px; height: 42px; min-width: 42px; border-radius: 10px; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 22px; }
+.hg-card-icon.blue { background: var(--hg-rust); }
+.hg-card-icon.green { background: var(--hg-success); }
+.hg-card-icon.yellow { background: var(--hg-highlight); }
+.hg-card-icon.red { background: var(--hg-error); }
+.hg-game-card h3 { font-size: 16px; font-weight: 700; margin: 0; }
+.hg-game-card-desc { font-size: 13px; color: var(--hg-muted); line-height: 1.5; margin: 0; }
+.hg-game-card-footer { display: flex; align-items: center; gap: 8px; border-top: 1px solid var(--hg-border); padding-top: 14px; }
+.hg-tag-chip { background: var(--hg-bg); color: var(--hg-muted); font-size: 11px; padding: 4px 9px; border-radius: 999px; }
+.hg-action-link { margin-left: auto; font-size: 13px; font-weight: 500; color: var(--hg-rust); }
+
+@media (max-width: 480px) {
+  .hg-banner { flex-direction: column; align-items: flex-start; }
+}

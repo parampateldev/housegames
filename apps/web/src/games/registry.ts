@@ -1,10 +1,14 @@
 import { lazy, type ComponentType } from 'react';
 
+export type CardAccent = 'blue' | 'green' | 'yellow' | 'red';
+
 export type GameEntry = {
   slug: string;
   label: string;
   tagline: string;
   minPlayers: number;
+  icon: string; // Material Symbols Outlined ligature name
+  accent: CardAccent;
   Component: ComponentType;
 };
 
@@ -14,6 +18,8 @@ export const GAMES: GameEntry[] = [
     label: 'Empire',
     tagline: 'Capture rival leaders and absorb their empire.',
     minPlayers: 3,
+    icon: 'public',
+    accent: 'blue',
     Component: lazy(() => import('./empire')),
   },
   {
@@ -21,6 +27,8 @@ export const GAMES: GameEntry[] = [
     label: 'Imposter',
     tagline: 'Everyone gets a secret word, except the imposter.',
     minPlayers: 3,
+    icon: 'person_search',
+    accent: 'green',
     Component: lazy(() => import('./imposter')),
   },
   {
@@ -28,6 +36,8 @@ export const GAMES: GameEntry[] = [
     label: 'Mafia',
     tagline: 'A hidden minority hunts the town, night after night.',
     minPlayers: 5,
+    icon: 'gavel',
+    accent: 'yellow',
     Component: lazy(() => import('./mafia')),
   },
   {
@@ -35,6 +45,8 @@ export const GAMES: GameEntry[] = [
     label: 'Werewolf',
     tagline: 'Root out the wolves before they pick off the village.',
     minPlayers: 7,
+    icon: 'nightlight',
+    accent: 'red',
     Component: lazy(() => import('./werewolf')),
   },
   {
@@ -42,6 +54,8 @@ export const GAMES: GameEntry[] = [
     label: 'Secret Hitler',
     tagline: 'Elect governments, enact policy, uncover the fascists.',
     minPlayers: 5,
+    icon: 'how_to_vote',
+    accent: 'blue',
     Component: lazy(() => import('./secret-hitler')),
   },
   {
@@ -49,6 +63,8 @@ export const GAMES: GameEntry[] = [
     label: 'Spyfall',
     tagline: 'One player has no idea where everyone is.',
     minPlayers: 3,
+    icon: 'travel_explore',
+    accent: 'green',
     Component: lazy(() => import('./spyfall')),
   },
   {
@@ -56,6 +72,8 @@ export const GAMES: GameEntry[] = [
     label: 'Codenames',
     tagline: 'Give one-word clues to lead your team across the board.',
     minPlayers: 4,
+    icon: 'extension',
+    accent: 'yellow',
     Component: lazy(() => import('./codenames')),
   },
   {
@@ -63,6 +81,8 @@ export const GAMES: GameEntry[] = [
     label: 'Pictionary',
     tagline: 'Draw it. No letters, no numbers, no talking.',
     minPlayers: 4,
+    icon: 'draw',
+    accent: 'red',
     Component: lazy(() => import('./pictionary')),
   },
   {
@@ -70,6 +90,8 @@ export const GAMES: GameEntry[] = [
     label: 'Charades',
     tagline: 'Act it out. No props, no sound.',
     minPlayers: 4,
+    icon: 'theater_comedy',
+    accent: 'blue',
     Component: lazy(() => import('./charades')),
   },
   {
@@ -77,6 +99,8 @@ export const GAMES: GameEntry[] = [
     label: 'Heads Up',
     tagline: 'Guess the word everyone else can see but you.',
     minPlayers: 3,
+    icon: 'quiz',
+    accent: 'green',
     Component: lazy(() => import('./heads-up')),
   },
   {
@@ -84,6 +108,8 @@ export const GAMES: GameEntry[] = [
     label: 'Wavelength',
     tagline: 'Read your partner\'s mind across a hidden spectrum.',
     minPlayers: 2,
+    icon: 'sensors',
+    accent: 'yellow',
     Component: lazy(() => import('./wavelength')),
   },
   {
@@ -91,6 +117,8 @@ export const GAMES: GameEntry[] = [
     label: 'Cards Against Humanity',
     tagline: 'Fill in the blank. The judge decides the winner.',
     minPlayers: 3,
+    icon: 'style',
+    accent: 'red',
     Component: lazy(() => import('./cah')),
   },
 ];
