@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams, Link } from 'react-router-dom';
-import { Button, Card, Field, TextInput, ErrorText, useToast, RoomHeader, PlayerManager } from '@ui/index';
+import { Button, Card, Field, TextInput, ErrorText, useToast, RoomHeader, PlayerManager, HelpModal } from '@ui/index';
 import { RequireIdentity } from '../../auth/RequireIdentity';
 import { randomRoomCode, isValidRoomCode, db, makeHost, addLocalPlayer } from '@fb/index';
 import { set, ref } from 'firebase/database';
@@ -93,7 +93,18 @@ function CAHApp({ uid, name }: { uid: string; name: string }) {
   const Header = (
     <header style={{ padding: '22px clamp(18px,5vw,72px)', display: 'flex', justifyContent: 'space-between' }}>
       <Link to="/" style={{ fontWeight: 700, textDecoration: 'none', color: 'inherit', textTransform: 'uppercase', letterSpacing: '.14em', fontSize: 12 }}>Cards Against Humanity</Link>
-      {code && <Button small ghost onClick={leave}>Leave</Button>}
+      <div style={{ display: 'flex', gap: 8 }}>
+        <HelpModal title="Cards Against Humanity">
+          <ol>
+            <li><b>Each player holds a hand of white answer cards.</b> Each round, one player is the Card Czar and draws a black prompt card.</li>
+            <li><b>Everyone else privately picks</b> the white card from their hand that best answers or completes the prompt, and submits it anonymously.</li>
+            <li><b>The Czar reads each submission aloud</b> without knowing who played it, and picks their favorite.</li>
+            <li><b>Whoever played the winning card scores a point</b>, and everyone refills their hand back up to their starting count.</li>
+            <li><b>Pass the Czar role</b> to someone new each round.</li>
+          </ol>
+        </HelpModal>
+        {code && <Button small ghost onClick={leave}>Leave</Button>}
+      </div>
     </header>
   );
 

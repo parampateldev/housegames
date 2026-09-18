@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams, Link } from 'react-router-dom';
-import { Button, Card, Field, TextInput, ErrorText, Timer, PlayerList, VoteGrid, useToast, RoomHeader, PlayerManager } from '@ui/index';
+import { Button, Card, Field, TextInput, ErrorText, Timer, PlayerList, VoteGrid, useToast, RoomHeader, PlayerManager, HelpModal } from '@ui/index';
 import { RequireIdentity } from '../../auth/RequireIdentity';
 import { randomRoomCode, isValidRoomCode, getAllSecretsOnce, makeHost, addLocalPlayer } from '@fb/index';
 import {
@@ -105,6 +105,15 @@ function App({ uid, name }: { uid: string; name: string }) {
   const Header = (
     <header style={{ padding: '22px clamp(18px,5vw,72px)', display: 'flex', justifyContent: 'space-between' }}>
       <Link to="/" style={{ fontWeight: 700, textDecoration: 'none', color: 'inherit', textTransform: 'uppercase', letterSpacing: '.14em', fontSize: 12 }}>Spyfall</Link>
+      <HelpModal title="Spyfall">
+        <ol>
+          <li><b>Everyone but the Spy is secretly told the same location</b> and a role there, say "Airplane: Pilot." The Spy is told nothing except the list of possible locations.</li>
+          <li><b>Question each other.</b> Players ask each other about the location, trying to sound like they belong, while the Spy bluffs along without knowing where "there" is.</li>
+          <li><b>Call a vote any time.</b> If the group accuses correctly and catches the Spy, the Spy gets one chance to guess the location. Guessing right still wins the round for the Spy.</li>
+          <li><b>Time runs out, or the group accuses wrong</b>, the Spy wins the round.</li>
+          <li><b>Rotate</b> and play again with a new location and a new Spy.</li>
+        </ol>
+      </HelpModal>
     </header>
   );
 

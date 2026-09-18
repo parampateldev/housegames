@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams, Link } from 'react-router-dom';
 import {
-  Button, Card, Field, TextInput, ErrorText, Timer, PlayerList, useToast, RoomHeader, PlayerManager,
+  Button, Card, Field, TextInput, ErrorText, Timer, PlayerList, useToast, RoomHeader, PlayerManager, HelpModal,
 } from '@ui/index';
 import { RequireIdentity } from '../../auth/RequireIdentity';
 import { randomRoomCode, isValidRoomCode, makeHost, addLocalPlayer } from '@fb/index';
@@ -170,8 +170,17 @@ function PictionaryApp({ uid, name }: { uid: string; name: string }) {
   if (screen === 'choose') {
     return (
       <main>
-        <header style={{ padding: '22px clamp(18px,5vw,72px)' }}>
+        <header style={{ padding: '22px clamp(18px,5vw,72px)', display: 'flex', justifyContent: 'space-between' }}>
           <Link to="/" style={{ fontWeight: 700, textDecoration: 'none', color: 'inherit', textTransform: 'uppercase', letterSpacing: '.14em', fontSize: 12 }}>Pictionary</Link>
+          <HelpModal title="Pictionary">
+            <ol>
+              <li><b>Split into teams.</b> One player per team is the Artist for the round and gets a secret word only they can see.</li>
+              <li><b>Draw it.</b> The Artist draws the word on the shared board, no letters, numbers, or gestures, while their team calls out guesses.</li>
+              <li><b>Score it.</b> A correct guess before time runs out scores a point and ends the round.</li>
+              <li><b>Pass the Artist role</b> to someone new each round.</li>
+              <li><b>Win it.</b> Whichever team reaches the target score first, or has the most points when you stop, wins.</li>
+            </ol>
+          </HelpModal>
         </header>
         <section className="hero">
           <div className="hg-eyebrow">Draw it. No letters, no talking.</div>

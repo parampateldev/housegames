@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams, Link } from 'react-router-dom';
-import { Button, Card, Field, TextInput, ErrorText, PlayerList, Timer, RoomHeader, PlayerManager } from '@ui/index';
+import { Button, Card, Field, TextInput, ErrorText, PlayerList, Timer, RoomHeader, PlayerManager, HelpModal } from '@ui/index';
 import { RequireIdentity } from '../../auth/RequireIdentity';
 import { randomRoomCode, isValidRoomCode, saveSettings, makeHost, addLocalPlayer } from '@fb/index';
 import {
@@ -91,6 +91,15 @@ function App({ uid, name }: { uid: string; name: string }) {
   const Header = (
     <header style={{ padding: '22px clamp(18px,5vw,72px)', display: 'flex', justifyContent: 'space-between' }}>
       <Link to="/" style={{ fontWeight: 700, textDecoration: 'none', color: 'inherit', textTransform: 'uppercase', letterSpacing: '.14em', fontSize: 12 }}>Heads Up</Link>
+      <HelpModal title="Heads Up">
+        <ol>
+          <li><b>Each round, one player is the Guesser.</b> Everyone else can see the current word on their own screen. The Guesser cannot.</li>
+          <li><b>Give clues out loud</b>, describing or acting out the word without saying it.</li>
+          <li><b>Guess.</b> The Guesser calls out guesses. Anyone can tap Correct to advance to the next word, or Pass to skip it.</li>
+          <li><b>Play continues</b> until the timer runs out.</li>
+          <li><b>Pass the Guesser role</b> to someone new and play again. The highest correct-guess count wins.</li>
+        </ol>
+      </HelpModal>
     </header>
   );
 
