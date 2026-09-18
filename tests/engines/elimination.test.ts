@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import {
   assignRoles, resolveNight, tallyDayVote, checkWinner, shuffle,
 } from '../../packages/game-engines/elimination-engine/src/engine';
-import { defaultMafiaRoles, defaultWerewolfRoles } from '../../packages/game-engines/elimination-engine/src/roles';
+import { defaultMafiaRoles, defaultWerewolfRoles, buildMafiaRoles, recommendedMafiaOptions } from '../../packages/game-engines/elimination-engine/src/roles';
 import type { EnginePlayer, RoleId } from '../../packages/game-engines/elimination-engine/src/types';
 
 const seeded = (seed: number) => () => {
@@ -68,6 +68,43 @@ describe('resolveNight, the order-of-operations bug class', () => {
   it('deduplicates if pack-kill and poison somehow target the same uid', () => {
     const result = resolveNight({ evilTargetUid: 'vic', witchPoisonUid: 'vic' }, roles);
     expect(result.killedUids).toEqual(['vic']);
+  });
+
+  it('a doctor save blocks the vigilante\'s shot on the same target, same as the pack\'s kill', () => {
+    const result = resolveNight({ vigilanteTargetUid: 'vic', doctorSaveUid: 'vic' }, roles);
+    expect(result.killedUids).toEqual([]);
+  });
+
+  it('the vigilante\'s shot lands independently of the pack\'s own kill', () => {
+    const result = resolveNight({ evilTargetUid: 'det', vigilanteTargetUid: 'vic' }, roles);
+    expect(result.killedUids.sort()).toEqual(['det', 'vic']);
+  });
+});
+
+describe('buildMafiaRoles, the host-customizable composition', () => {
+  it('villagers fill whatever the chosen named roles leave behind', () => {
+    const defs = buildMafiaRoles(10, { evilCount: 2, hasDetective: true, hasDoctor: true, hasVigilante: true });
+    expect(defs.reduce((s, r) => s + r.count, 0)).toBe(10);
+    expect(defs.find((r) => r.id === 'villager')?.count).toBe(5);
+  });
+
+  it('rejects a mafia count that would equal or outnumber the town', () => {
+    expect(() => buildMafiaRoles(6, { evilCount: 3, hasDetective: false, hasDoctor: false, hasVigilante: false })).toThrow();
+  });
+
+  it('rejects more named roles than there are players', () => {
+    expect(() => buildMafiaRoles(4, { evilCount: 1, hasDetective: true, hasDoctor: true, hasVigilante: true })).toThrow();
+  });
+
+  it('recommended options always produce a valid, playable composition', () => {
+    for (let n = 4; n <= 20; n++) {
+      expect(() => buildMafiaRoles(n, recommendedMafiaOptions(n))).not.toThrow();
+    }
+  });
+
+  it('recommends the vigilante only once the room is large enough', () => {
+    expect(recommendedMafiaOptions(7).hasVigilante).toBe(false);
+    expect(recommendedMafiaOptions(8).hasVigilante).toBe(true);
   });
 });
 
