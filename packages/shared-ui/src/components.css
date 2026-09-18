@@ -115,6 +115,9 @@
 .hg-share-bar span { font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
 .hg-mini-btn { border: 1px solid var(--hg-border-strong); background: transparent; color: var(--hg-ink); padding: 7px 13px; font-size: 12px; border-radius: 999px; cursor: pointer; font-family: var(--hg-font-body); white-space: nowrap; }
+/* The share bar has a dark background, so its button needs light text/border, not the default ink-on-ink. */
+.hg-share-bar .hg-mini-btn { color: var(--hg-bg); border-color: rgba(255,255,255,.45); }
+.hg-share-bar .hg-mini-btn:hover { background: rgba(255,255,255,.12); }
 .hg-mini-danger { color: var(--hg-error); border-color: var(--hg-error); }
 
 .hg-player-manager { margin: 14px 0; }
