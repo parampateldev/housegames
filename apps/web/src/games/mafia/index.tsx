@@ -296,7 +296,8 @@ function MafiaApp({ uid, name }: { uid: string; name: string }) {
           <div className="day-summary">
             <div className="hg-eyebrow">Day {room.settings.round}</div>
             <h2 style={{ fontFamily: 'var(--hg-font-display)', fontStyle: 'italic' }}>
-              {room.settings.lastDeaths.length ? `${room.settings.lastDeaths.map((id) => players.find((p) => p.id === id)?.name).join(', ')} died in the night.` : 'No one died last night.'}
+              {/* Firebase drops an empty-array field on write, so lastDeaths is undefined, not [], when nobody died. */}
+              {room.settings.lastDeaths?.length ? `${room.settings.lastDeaths.map((id) => players.find((p) => p.id === id)?.name).join(', ')} died in the night.` : 'No one died last night.'}
             </h2>
           </div>
           <Card>

@@ -246,7 +246,9 @@ function SHApp({ uid, name }: { uid: string; name: string }) {
             <summary>Your role</summary>
             <div className={'role-banner ' + role.role}>
               <h2>{role.role === 'hitler' ? 'Hitler' : role.role[0].toUpperCase() + role.role.slice(1)}</h2>
-              {role.teammates.length > 0 && <p>You know: {role.teammates.join(', ')}</p>}
+              {/* Firebase drops empty-array fields on write, so a Liberal's (or 7+-player Hitler's)
+                  teammates comes back as undefined, not []. Never assume an array field survived. */}
+              {(role.teammates?.length ?? 0) > 0 && <p>You know: {role.teammates!.join(', ')}</p>}
             </div>
           </details>
         )}
