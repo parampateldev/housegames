@@ -37,18 +37,22 @@ describe('buildNightActions', () => {
     expect(actions.evilTargetUid).toBeUndefined();
   });
 
-  it('witch poison is read from the separate nightPoison field, independent of nightAction', () => {
-    const witchRoles: Record<string, RoleId> = { w: 'witch', vic: 'villager' };
+  it('reads the vigilante\'s shot from their nightAction, once, ever', () => {
+    const vigRoles: Record<string, RoleId> = { v: 'vigilante', target: 'villager' };
     const secrets: Record<string, MafiaSecret> = {
-      w: {
-        role: 'witch',
-        nightAction: { round: 1, targetUid: 'vic' }, // her save
-        nightPoison: { round: 1, targetUid: 'vic' }, // her poison, same or different target
-      },
+      v: { role: 'vigilante', nightAction: { round: 1, targetUid: 'target' } },
     };
-    const actions = buildNightActions(secrets, witchRoles, 1);
-    expect(actions.doctorSaveUid).toBe('vic');
-    expect(actions.witchPoisonUid).toBe('vic');
+    const actions = buildNightActions(secrets, vigRoles, 1);
+    expect(actions.vigilanteTargetUid).toBe('target');
+  });
+
+  it('ignores the vigilante once their one shot is already used', () => {
+    const vigRoles: Record<string, RoleId> = { v: 'vigilante', target: 'villager' };
+    const secrets: Record<string, MafiaSecret> = {
+      v: { role: 'vigilante', nightAction: { round: 2, targetUid: 'target' }, vigilanteShotUsed: true },
+    };
+    const actions = buildNightActions(secrets, vigRoles, 2);
+    expect(actions.vigilanteTargetUid).toBeUndefined();
   });
 });
 
@@ -60,7 +64,7 @@ describe('allNightActionsIn', () => {
     expect(allNightActionsIn(secrets, roles, ['m1', 'm2', 'doc', 'det', 'vic'], 1)).toBe(false);
   });
 
-  it('true once all mandatory roles have submitted, regardless of the optional witch', () => {
+  it('true once all mandatory roles have submitted, regardless of the optional vigilante', () => {
     const secrets: Record<string, MafiaSecret> = {
       m1: { role: 'evil', nightAction: { round: 1, targetUid: 'vic' } },
       m2: { role: 'evil', nightAction: { round: 1, targetUid: 'vic' } },

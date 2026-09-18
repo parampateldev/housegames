@@ -7,15 +7,15 @@ import { randomRoomCode, isValidRoomCode, makeHost, addLocalPlayer } from '@fb/i
 import { RequireIdentity } from '../../auth/RequireIdentity';
 import {
   createMafiaRoom, joinMafiaRoom, watchMafiaRoom, watchMySecret, watchLocalSecrets,
-  assignRolesAndStartNight, submitNightAction, submitWitchPoison,
+  assignRolesAndStartNight, submitNightAction, submitVigilanteShot,
   resolveNightPhase, startVote, castVote, watchVotes, resolveVote,
-  leaveMafiaRoom, kickPlayer, type MafiaRoom,
+  leaveMafiaRoom, kickPlayer, recommendedMafiaOptions, type MafiaRoom, type MafiaRoleOptions,
 } from './firebase';
 import type { MafiaSecret } from './game';
 import './mafia.css';
 
 const CODE_LENGTH = 5;
-const ROLE_LABEL: Record<string, string> = { evil: 'Mafia', doctor: 'Doctor', detective: 'Detective', witch: 'Witch', villager: 'Villager' };
+const ROLE_LABEL: Record<string, string> = { evil: 'Mafia', doctor: 'Doctor', detective: 'Detective', vigilante: 'Vigilante', villager: 'Villager' };
 
 export default function MafiaGame() {
   return <div className="mg"><RequireIdentity>{(identity) => <MafiaApp uid={identity.uid} name={identity.name} />}</RequireIdentity></div>;
@@ -35,8 +35,8 @@ function MafiaApp({ uid, name }: { uid: string; name: string }) {
   const [votes, setVotes] = useState<Record<string, string>>({});
   const [error, setError] = useState('');
   const [nightTarget, setNightTarget] = useState('');
-  const [poisonTarget, setPoisonTarget] = useState('');
   const [localSecrets, setLocalSecrets] = useState<Record<string, MafiaSecret>>({});
+  const [roleOptions, setRoleOptions] = useState<MafiaRoleOptions | null>(null);
 
   const isHost = room?.hostId === uid;
   const fail = (e: unknown) => setError(e instanceof Error ? e.message : String(e));
@@ -97,8 +97,8 @@ function MafiaApp({ uid, name }: { uid: string; name: string }) {
       <Link to="/" style={{ fontWeight: 700, textDecoration: 'none', color: 'inherit', textTransform: 'uppercase', letterSpacing: '.14em', fontSize: 12 }}>Mafia</Link>
       <HelpModal title="Mafia">
         <ol>
-          <li><b>Roles are dealt in secret.</b> A minority of players are secretly Mafia. Everyone else is an innocent Villager. Larger games also get a Doctor, who can save someone each night, and a Detective, who can investigate one player each night.</li>
-          <li><b>Night falls.</b> The Mafia silently choose someone to eliminate. The Doctor may protect one player. The Detective learns whether one player is Mafia or innocent.</li>
+          <li><b>Roles are dealt in secret.</b> A minority of players are secretly Mafia. Everyone else is an innocent Villager, unless the host turns on extra roles: a Doctor who can save someone each night, a Detective who can investigate one player each night, and a Vigilante with one bullet for the whole game. The host sets the mafia count and which of these are in play from the lobby.</li>
+          <li><b>Night falls.</b> The Mafia silently choose someone to eliminate. The Doctor may protect one player. The Detective learns whether one player is Mafia or innocent. The Vigilante may take their one shot, now or later.</li>
           <li><b>Day breaks.</b> Whoever died overnight is announced. Everyone discusses who they suspect, then votes to eliminate one player.</li>
           <li><b>The accused is out</b>, Mafia or innocent. Repeat night and day.</li>
           <li><b>Win it.</b> The Village wins once every Mafia member is gone. The Mafia win once they equal or outnumber the Village.</li>
@@ -157,6 +157,11 @@ function MafiaApp({ uid, name }: { uid: string; name: string }) {
   const alivePlayers = players.filter((p) => p.alive);
 
   if (room.phase === 'lobby') {
+    const opts = roleOptions ?? recommendedMafiaOptions(Math.max(players.length, 4));
+    const namedCount = opts.evilCount + (opts.hasDetective ? 1 : 0) + (opts.hasDoctor ? 1 : 0) + (opts.hasVigilante ? 1 : 0);
+    const maxEvil = Math.max(1, Math.ceil(players.length / 2) - 1);
+    const tooManyRoles = players.length >= 4 && namedCount >= players.length;
+    const updateOpts = (patch: Partial<MafiaRoleOptions>) => setRoleOptions({ ...opts, ...patch });
     return (
       <main>{Header}
         <div className="room-wrap">
@@ -174,7 +179,30 @@ function MafiaApp({ uid, name }: { uid: string; name: string }) {
               onAddLocal={(n) => addLocalPlayer('mafia', code, uid, n, (id, nm) => ({ id, name: nm, alive: true })).catch(fail)}
             />
             {isHost && (
-              <Button wide disabled={players.length < 4} onClick={() => assignRolesAndStartNight(code, uid).catch(fail)} style={{ marginTop: 20 }}>
+              <div className="hg-player-manager">
+                <h3>Roles</h3>
+                <div className="hg-row" style={{ marginTop: 10, justifyContent: 'space-between' }}>
+                  <span className="hg-field-label" style={{ margin: 0 }}>Mafia</span>
+                  <div className="hg-stepper">
+                    <button type="button" onClick={() => updateOpts({ evilCount: Math.max(1, opts.evilCount - 1) })} disabled={opts.evilCount <= 1}>−</button>
+                    <span className="val">{opts.evilCount}</span>
+                    <button type="button" onClick={() => updateOpts({ evilCount: Math.min(maxEvil, opts.evilCount + 1) })} disabled={opts.evilCount >= maxEvil}>+</button>
+                  </div>
+                </div>
+                <div className="hg-chip-row" style={{ marginTop: 14 }}>
+                  <button type="button" className={`hg-chip${opts.hasDoctor ? ' on' : ''}`} onClick={() => updateOpts({ hasDoctor: !opts.hasDoctor })}>Doctor</button>
+                  <button type="button" className={`hg-chip${opts.hasDetective ? ' on' : ''}`} onClick={() => updateOpts({ hasDetective: !opts.hasDetective })}>Detective</button>
+                  <button type="button" className={`hg-chip${opts.hasVigilante ? ' on' : ''}`} onClick={() => updateOpts({ hasVigilante: !opts.hasVigilante })}>Vigilante</button>
+                </div>
+                <p className="hg-note" style={{ marginTop: 10 }}>
+                  {tooManyRoles
+                    ? 'Too many special roles for this many players, turn one off.'
+                    : (() => { const v = Math.max(Math.max(players.length, 4) - namedCount, 0); return `${v} villager${v === 1 ? '' : 's'} fill the rest.`; })()}
+                </p>
+              </div>
+            )}
+            {isHost && (
+              <Button wide disabled={players.length < 4 || tooManyRoles} onClick={() => assignRolesAndStartNight(code, uid, opts).catch(fail)} style={{ marginTop: 20 }}>
                 {players.length < 4 ? 'Need at least 4 players' : 'Assign roles & start'}
               </Button>
             )}
@@ -225,18 +253,14 @@ function MafiaApp({ uid, name }: { uid: string; name: string }) {
                 <p className="waiting-note">{role === 'evil' ? 'Choose who the mafia kills tonight.' : role === 'doctor' ? 'Choose who to save.' : 'Choose who to investigate.'}</p>
               </div>
             )}
-            {alive && role === 'witch' && (
+            {alive && role === 'vigilante' && (
               <div style={{ marginTop: 20 }}>
-                {!mySecret?.witchSaveUsed && (
+                {mySecret?.vigilanteShotUsed ? (
+                  <p className="waiting-note">You've used your one shot. Wait for dawn.</p>
+                ) : (
                   <>
-                    <VoteGrid players={alivePlayers} selectedId={nightTarget} onVote={(id) => { setNightTarget(id); submitNightAction(code, uid, room.settings.round, id).catch(fail); }} />
-                    <p className="waiting-note">Save someone (once per game).</p>
-                  </>
-                )}
-                {!mySecret?.witchPoisonUsed && (
-                  <>
-                    <VoteGrid players={alivePlayers} selectedId={poisonTarget} onVote={(id) => { setPoisonTarget(id); submitWitchPoison(code, uid, room.settings.round, id).catch(fail); }} />
-                    <p className="waiting-note">Poison someone (once per game).</p>
+                    <VoteGrid players={alivePlayers.filter((p) => p.id !== uid)} selectedId={nightTarget} onVote={(id) => { setNightTarget(id); submitVigilanteShot(code, uid, room.settings.round, id).catch(fail); }} />
+                    <p className="waiting-note">Take your one shot, or leave it be tonight.</p>
                   </>
                 )}
               </div>
@@ -249,8 +273,7 @@ function MafiaApp({ uid, name }: { uid: string; name: string }) {
               const secret = localSecrets[localUid];
               const localName = players.find((p) => p.id === localUid)?.name ?? 'Player';
               if (!secret?.role || secret.role === 'villager') return null;
-              const alreadyActed = secret.nightAction?.round === room.settings.round
-                && (secret.role !== 'witch' || (secret.witchSaveUsed && secret.witchPoisonUsed));
+              const alreadyActed = secret.nightAction?.round === room.settings.round || secret.vigilanteShotUsed;
               if (alreadyActed) return null;
               return (
                 <div key={localUid} style={{ marginTop: 20, paddingTop: 16, borderTop: '1px solid rgba(255,255,255,.2)' }}>
@@ -261,20 +284,10 @@ function MafiaApp({ uid, name }: { uid: string; name: string }) {
                       onVote={(id) => submitNightAction(code, localUid, room.settings.round, id).catch(fail)}
                     />
                   )}
-                  {secret.role === 'witch' && (
+                  {secret.role === 'vigilante' && (
                     <>
-                      {!secret.witchSaveUsed && (
-                        <>
-                          <p className="waiting-note">Save (once per game):</p>
-                          <VoteGrid players={alivePlayers} onVote={(id) => submitNightAction(code, localUid, room.settings.round, id).catch(fail)} />
-                        </>
-                      )}
-                      {!secret.witchPoisonUsed && (
-                        <>
-                          <p className="waiting-note">Poison (once per game):</p>
-                          <VoteGrid players={alivePlayers} onVote={(id) => submitWitchPoison(code, localUid, room.settings.round, id).catch(fail)} />
-                        </>
-                      )}
+                      <p className="waiting-note">Their one shot for the game, or skip:</p>
+                      <VoteGrid players={alivePlayers.filter((p) => p.id !== localUid)} onVote={(id) => submitVigilanteShot(code, localUid, room.settings.round, id).catch(fail)} />
                     </>
                   )}
                 </div>

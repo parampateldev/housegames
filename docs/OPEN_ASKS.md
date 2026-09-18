@@ -3,6 +3,37 @@
 Tracking the mid-build requests that came in after the initial 12-game platform
 was deployed, so nothing gets dropped under time pressure. Newest at top.
 
+## Rebrand and Google Material retheme
+- [x] Retheme to a Google Material 3 look (from the user's `quant-lab`
+      reference), applied almost entirely through `packages/shared-ui/src/tokens.css`
+      so no per-game CSS needed touching
+- [x] Renamed the site to **Mingl** (was briefly "Huddl", dropped after the
+      user flagged it collides with an existing sports-analytics company).
+      The GitHub repo and deployed URL path (`/housegames/`) are deliberately
+      left as-is, lower-risk than touching the live URL
+- [x] Fixed the invisible "Copy link" button: `.hg-mini-btn`'s hardcoded
+      ink-colored text was invisible against `.hg-share-bar`'s dark
+      background, scoped a light-text override to that context
+- [ ] `auth/unauthorized-domain` still reported for Google sign-in on the
+      live site specifically. `accounts:createAuthUri` succeeds for both
+      the github.io and localhost domains, and Google sign-in works cleanly
+      on localhost, so the general authorized-domains setup looks correct;
+      unconfirmed whether this is a stale cache on the reporter's end or a
+      real gap (e.g. the Google Cloud OAuth client's own "Authorized
+      JavaScript origins" list, separate from Firebase's domain list).
+      Needs a hard-refresh retry and the exact error text/domain to pin down.
+
+## Mafia host customization
+- [x] Host can set the mafia count and toggle Doctor / Detective / Vigilante
+      on or off from the lobby, before starting the game (`buildMafiaRoles`,
+      `recommendedMafiaOptions` in the elimination engine); villagers fill
+      whatever's left, with validation so mafia can never start equal to or
+      outnumbering the town
+- [x] Added a Vigilante role (one bullet for the whole game, blockable by
+      the doctor same as the mafia's own kill) as a common, standard option
+      for larger rooms; replaced a copy-pasted-from-Werewolf Witch branch
+      that mafia's role table could never actually produce
+
 ## Auth hardening
 - [x] Email format validation on sign-up (rejects obviously-fake input,
       client-side before it reaches Firebase)

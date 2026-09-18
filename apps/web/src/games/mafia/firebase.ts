@@ -4,7 +4,8 @@ import {
   db, type BaseRoom,
 } from '@fb/index';
 import {
-  assignRoles as engineAssignRoles, resolveNight as engineResolveNight, tallyDayVote, checkWinner, defaultMafiaRoles,
+  assignRoles as engineAssignRoles, resolveNight as engineResolveNight, tallyDayVote, checkWinner,
+  buildMafiaRoles, recommendedMafiaOptions, type MafiaRoleOptions,
   type RoleDef, type RoleId, type EnginePlayer,
 } from '@engines/elimination/index';
 import { get, ref, set, update, remove, onValue } from 'firebase/database';
@@ -26,6 +27,9 @@ export async function createMafiaRoom(code: string, hostId: string, hostPlayer: 
   const settings: MafiaSettings = { roleConfig: [], round: 0, lastDeaths: [], winner: null };
   await createRoom(NS, code, hostId, hostPlayer, settings);
 }
+
+export { recommendedMafiaOptions };
+export type { MafiaRoleOptions };
 
 export async function joinMafiaRoom(code: string, player: MafiaPlayer) {
   await joinRoom(NS, code, player);
@@ -49,13 +53,13 @@ async function getRoom(code: string): Promise<MafiaRoom | null> {
   return snap.val() as MafiaRoom | null;
 }
 
-/** Host-only: assigns roles once, writes each player's own secret, starts round 1. */
-export async function assignRolesAndStartNight(code: string, hostId: string) {
+/** Host-only: assigns roles once, writes each player's own secret, starts round 1. Uses the host's chosen composition, or the recommended default if they didn't customize it. */
+export async function assignRolesAndStartNight(code: string, hostId: string, roleOptions?: MafiaRoleOptions) {
   const room = await getRoom(code);
   if (room?.hostId !== hostId) throw new Error('Only the host can start');
   const players = Object.values(room.players ?? {});
   if (players.length < 4) throw new Error('Need at least 4 players');
-  const roleConfig = defaultMafiaRoles(players.length);
+  const roleConfig = buildMafiaRoles(players.length, roleOptions ?? recommendedMafiaOptions(players.length));
   const roles = engineAssignRoles(players.map((p) => p.id), roleConfig);
 
   const evilNames = players.filter((p) => roles[p.id] === 'evil').map((p) => p.name);
@@ -74,13 +78,9 @@ export async function submitNightAction(code: string, uid: string, round: number
   await update(ref(requireDb(), `${NS}/secrets/${code}/${uid}`), { nightAction: { round, targetUid } });
 }
 
-/** Witch-only: her poison is independent of her save, tracked separately. */
-export async function submitWitchPoison(code: string, uid: string, round: number, targetUid: string) {
-  await update(ref(requireDb(), `${NS}/secrets/${code}/${uid}`), { nightPoison: { round, targetUid }, witchPoisonUsed: true });
-}
-
-export async function markWitchSaveUsed(code: string, uid: string) {
-  await update(ref(requireDb(), `${NS}/secrets/${code}/${uid}`), { witchSaveUsed: true });
+/** Vigilante-only: their one shot for the whole game. */
+export async function submitVigilanteShot(code: string, uid: string, round: number, targetUid: string) {
+  await update(ref(requireDb(), `${NS}/secrets/${code}/${uid}`), { nightAction: { round, targetUid }, vigilanteShotUsed: true });
 }
 
 export async function nightActionsReady(code: string, alivePlayerIds: string[]): Promise<boolean> {

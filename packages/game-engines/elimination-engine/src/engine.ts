@@ -37,6 +37,9 @@ export function resolveNight(actions: NightActions, roles: Record<string, RoleId
   if (actions.evilTargetUid && actions.evilTargetUid !== actions.doctorSaveUid) {
     killedUids.push(actions.evilTargetUid);
   }
+  if (actions.vigilanteTargetUid && actions.vigilanteTargetUid !== actions.doctorSaveUid) {
+    killedUids.push(actions.vigilanteTargetUid);
+  }
   if (actions.witchPoisonUid) {
     killedUids.push(actions.witchPoisonUid);
   }

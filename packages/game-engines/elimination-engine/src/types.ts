@@ -1,6 +1,6 @@
 export type Team = 'town' | 'evil';
 
-export type RoleId = 'villager' | 'evil' | 'doctor' | 'detective' | 'witch';
+export type RoleId = 'villager' | 'evil' | 'doctor' | 'detective' | 'witch' | 'vigilante';
 
 export type RoleDef = { id: RoleId; team: Team; count: number };
 
@@ -16,6 +16,7 @@ export type NightActions = {
   doctorSaveUid?: string; // doctor/witch-save target
   detectiveCheckUid?: string; // detective/seer target
   witchPoisonUid?: string; // werewolf-only: witch's one-time poison, independent of the pack kill
+  vigilanteTargetUid?: string; // mafia-only: town's one-shot night kill, blockable by the doctor same as the pack's kill
 };
 
 export type NightResult = {
