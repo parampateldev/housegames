@@ -3,7 +3,7 @@ import {
   setSecret, setSecretsForMany, watchMySecret,
   db, type BaseRoom,
 } from '@fb/index';
-import { get, ref } from 'firebase/database';
+import { get, ref, set } from 'firebase/database';
 import type { Player, Settings, DealResult } from './game';
 
 const NS = 'spyfall';
@@ -56,11 +56,11 @@ export async function dealAndStart(code: string, hostId: string, deal: DealResul
 }
 
 export async function castVote(code: string, uid: string, targetUid: string) {
-  await ref(requireDb(), `${NS}/rooms/${code}/votes/${uid}`).set(targetUid);
+  await set(ref(requireDb(), `${NS}/rooms/${code}/votes/${uid}`), targetUid);
 }
 
 export async function clearVotes(code: string) {
-  await ref(requireDb(), `${NS}/rooms/${code}/votes`).set(null).catch(() => {});
+  await set(ref(requireDb(), `${NS}/rooms/${code}/votes`), null).catch(() => {});
 }
 
 /** Fans the real location + spy identity out to every player's own secret path once the round is over. */

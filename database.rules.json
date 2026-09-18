@@ -25,6 +25,9 @@
           "settings": {
             ".write": "auth != null && root.child('empire/rooms/'+$room+'/hostId').val() === auth.uid"
           },
+          "state": {
+            ".write": "auth != null && root.child('empire/rooms/'+$room+'/hostId').val() === auth.uid"
+          },
           "players": {
             "$uid": {
               ".write": "auth != null && (auth.uid === $uid || root.child('empire/rooms/'+$room+'/hostId').val() === auth.uid)"
@@ -70,6 +73,9 @@
             ".write": "auth != null && root.child('imposter/rooms/'+$room+'/hostId').val() === auth.uid"
           },
           "settings": {
+            ".write": "auth != null && root.child('imposter/rooms/'+$room+'/hostId').val() === auth.uid"
+          },
+          "state": {
             ".write": "auth != null && root.child('imposter/rooms/'+$room+'/hostId').val() === auth.uid"
           },
           "players": {
@@ -119,6 +125,9 @@
           "settings": {
             ".write": "auth != null && root.child('mafia/rooms/'+$room+'/hostId').val() === auth.uid"
           },
+          "state": {
+            ".write": "auth != null && root.child('mafia/rooms/'+$room+'/hostId').val() === auth.uid"
+          },
           "players": {
             "$uid": {
               ".write": "auth != null && (auth.uid === $uid || root.child('mafia/rooms/'+$room+'/hostId').val() === auth.uid)"
@@ -164,6 +173,9 @@
             ".write": "auth != null && root.child('werewolf/rooms/'+$room+'/hostId').val() === auth.uid"
           },
           "settings": {
+            ".write": "auth != null && root.child('werewolf/rooms/'+$room+'/hostId').val() === auth.uid"
+          },
+          "state": {
             ".write": "auth != null && root.child('werewolf/rooms/'+$room+'/hostId').val() === auth.uid"
           },
           "players": {
@@ -213,6 +225,9 @@
           "settings": {
             ".write": "auth != null && root.child('secretHitler/rooms/'+$room+'/hostId').val() === auth.uid"
           },
+          "state": {
+            ".write": "auth != null && root.child('secretHitler/rooms/'+$room+'/hostId').val() === auth.uid"
+          },
           "players": {
             "$uid": {
               ".write": "auth != null && (auth.uid === $uid || root.child('secretHitler/rooms/'+$room+'/hostId').val() === auth.uid)"
@@ -258,6 +273,9 @@
             ".write": "auth != null && root.child('spyfall/rooms/'+$room+'/hostId').val() === auth.uid"
           },
           "settings": {
+            ".write": "auth != null && root.child('spyfall/rooms/'+$room+'/hostId').val() === auth.uid"
+          },
+          "state": {
             ".write": "auth != null && root.child('spyfall/rooms/'+$room+'/hostId').val() === auth.uid"
           },
           "players": {
@@ -307,6 +325,9 @@
           "settings": {
             ".write": "auth != null && root.child('codenames/rooms/'+$room+'/hostId').val() === auth.uid"
           },
+          "state": {
+            ".write": "auth != null && root.child('codenames/rooms/'+$room+'/hostId').val() === auth.uid"
+          },
           "players": {
             "$uid": {
               ".write": "auth != null && (auth.uid === $uid || root.child('codenames/rooms/'+$room+'/hostId').val() === auth.uid)"
@@ -354,6 +375,9 @@
           "settings": {
             ".write": "auth != null && root.child('pictionary/rooms/'+$room+'/hostId').val() === auth.uid"
           },
+          "state": {
+            ".write": "auth != null && root.child('pictionary/rooms/'+$room+'/hostId').val() === auth.uid"
+          },
           "players": {
             "$uid": {
               ".write": "auth != null && (auth.uid === $uid || root.child('pictionary/rooms/'+$room+'/hostId').val() === auth.uid)"
@@ -380,6 +404,14 @@
           ".read": "auth != null && (!data.exists() || (root.child('pictionary/rooms/'+$room+'/hostId').val() === auth.uid || root.child('pictionary/rooms/'+$room+'/privilegedUid').val() === auth.uid))",
           ".write": "auth != null && (root.child('pictionary/rooms/'+$room+'/hostId').val() === auth.uid || root.child('pictionary/rooms/'+$room+'/privilegedUid').val() === auth.uid)"
         }
+      },
+      "strokes": {
+        "$room": {
+          "$round": {
+            ".read": "auth != null",
+            ".write": "auth != null"
+          }
+        }
       }
     },
     "charades": {
@@ -399,6 +431,9 @@
             ".write": "auth != null && root.child('charades/rooms/'+$room+'/hostId').val() === auth.uid"
           },
           "settings": {
+            ".write": "auth != null && root.child('charades/rooms/'+$room+'/hostId').val() === auth.uid"
+          },
+          "state": {
             ".write": "auth != null && root.child('charades/rooms/'+$room+'/hostId').val() === auth.uid"
           },
           "players": {
@@ -448,6 +483,9 @@
           "settings": {
             ".write": "auth != null && root.child('headsUp/rooms/'+$room+'/hostId').val() === auth.uid"
           },
+          "state": {
+            ".write": "auth != null && root.child('headsUp/rooms/'+$room+'/hostId').val() === auth.uid"
+          },
           "players": {
             "$uid": {
               ".write": "auth != null && (auth.uid === $uid || root.child('headsUp/rooms/'+$room+'/hostId').val() === auth.uid)"
@@ -495,6 +533,9 @@
           "settings": {
             ".write": "auth != null && root.child('wavelength/rooms/'+$room+'/hostId').val() === auth.uid"
           },
+          "state": {
+            ".write": "auth != null && root.child('wavelength/rooms/'+$room+'/hostId').val() === auth.uid"
+          },
           "players": {
             "$uid": {
               ".write": "auth != null && (auth.uid === $uid || root.child('wavelength/rooms/'+$room+'/hostId').val() === auth.uid)"
@@ -540,6 +581,9 @@
             ".write": "auth != null && root.child('cah/rooms/'+$room+'/hostId').val() === auth.uid"
           },
           "settings": {
+            ".write": "auth != null && root.child('cah/rooms/'+$room+'/hostId').val() === auth.uid"
+          },
+          "state": {
             ".write": "auth != null && root.child('cah/rooms/'+$room+'/hostId').val() === auth.uid"
           },
           "players": {

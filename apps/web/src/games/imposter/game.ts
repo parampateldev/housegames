@@ -13,7 +13,7 @@ export type Secret = { role: Role; word?: string; hint?: string };
 export type Player = { id: string; name: string; joinedAt: number; clue?: string; ready?: boolean };
 export type RoundInfo = { num: number; cat: string };
 export type ResultInfo = {
-  accused: string; accusedName: string; wasImposter?: boolean; outcome?: 'crew' | 'steal';
+  accused: string; accusedName: string; wasImposter?: boolean; outcome?: 'crew' | 'steal' | 'imposter';
   word?: string; imposterNames?: string[]; guess?: string; guessCorrect?: boolean;
 };
 export type HintLevel = 'off' | 'okay' | 'good' | 'great';

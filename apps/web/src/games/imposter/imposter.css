@@ -1,0 +1,47 @@
+/* Imposter-specific visuals, scoped under .ig (mirrors Empire's .eg
+   convention) so class names like .card/.player/.panel never collide with
+   another game's bespoke CSS. Ported from the original repo's inline
+   styles almost verbatim — this design already matched the platform's
+   shared tokens closely since Imposter and Empire share one design system. */
+.ig .hero { padding: 6vh clamp(22px,8vw,130px); position: relative; display: flex; flex-direction: column; justify-content: center; flex: 1; }
+.ig .spy { position: absolute; right: 8%; top: 10%; font-size: 170px; opacity: .14; transform: rotate(8deg); pointer-events: none; user-select: none; }
+.ig .actions { display: flex; gap: 12px; margin-top: 30px; flex-wrap: wrap; }
+
+.ig .row { display: flex; gap: 10px; align-items: center; }
+.ig .plist { margin: 10px 0; }
+.ig .player-row { display: flex; align-items: center; border-top: 1px solid var(--hg-border); padding: 12px 0; gap: 12px; }
+.ig .player-row i { display: grid; place-items: center; width: 38px; height: 38px; background: #ddc6ad; border-radius: 50%; font-style: normal; font-weight: 700; color: #5b4632; flex: none; }
+.ig .player-row span { flex: 1; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ig .player-row small { background: var(--hg-ink); color: #fff; padding: 3px 8px; border-radius: 4px; font-size: 11px; margin-left: 8px; }
+.ig .player-row em { font-size: 12px; color: #9b8f84; font-style: normal; margin-left: 8px; }
+.ig .player-row button.x { background: transparent; color: var(--hg-error); padding: 4px 8px; font-size: 16px; border: 0; cursor: pointer; }
+
+.ig .share { display: flex; background: var(--hg-ink); color: var(--hg-bg); padding: 14px 18px; margin: 26px 0; align-items: center; justify-content: space-between; border-radius: 8px; gap: 10px; }
+.ig .share span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 14px; }
+.ig .mini { padding: 9px 15px; background: var(--hg-rust); font-size: 12px; flex: none; border-radius: 999px; border: 0; color: #fff; cursor: pointer; }
+.ig .bigcode { font-family: var(--hg-font-display); font-style: italic; font-size: 56px; letter-spacing: .12em; margin: 6px 0 0; color: var(--hg-rust); }
+.ig .hostbar { position: sticky; bottom: 16px; margin-top: 24px; background: var(--hg-rust); color: #fff; padding: 14px 18px; display: flex; justify-content: space-between; align-items: center; border-radius: 12px; box-shadow: 0 15px 50px #7c281d4d; gap: 10px; flex-wrap: wrap; }
+.ig .hostbar .hg-btn { background: #fff; color: var(--hg-ink); }
+
+.ig .cluefeed { margin: 16px 0; }
+.ig .clue-row { display: flex; gap: 12px; align-items: baseline; border-top: 1px solid var(--hg-border); padding: 10px 0; }
+.ig .clue-row b { min-width: 90px; color: var(--hg-muted-2); font-weight: 600; font-size: 13px; }
+.ig .clue-row span { font-size: 18px; }
+
+.ig .resultcard { text-align: center; padding: 30px 0; }
+.ig .resultcard .verdict { font-family: var(--hg-font-display); font-style: italic; font-size: clamp(30px,7vw,46px); margin: 14px 0; }
+.ig .win { color: var(--hg-success); }
+.ig .lose { color: var(--hg-error); }
+
+.ig .lobby, .ig .gscreen { width: min(860px, calc(100% - 32px)); margin: 4vh auto; flex: 1; }
+.ig .panel { background: var(--hg-card); border: 1px solid var(--hg-border-strong); padding: 26px; margin-top: 20px; }
+.ig .panel h3 { margin-top: 0; }
+.ig .leavebtn { background: transparent; color: #8b3125; border: 1px solid #8b3125; padding: 9px 15px; font-size: 12px; border-radius: 999px; cursor: pointer; }
+.ig .loader { margin: auto; font-size: 26px; padding: 20vh 0; text-align: center; }
+
+@media (max-width: 640px) {
+  .ig .spy { font-size: 96px; }
+  .ig .bigcode { font-size: 44px; }
+  .ig .actions { flex-direction: column; }
+  .ig .actions .hg-btn { width: 100%; }
+}

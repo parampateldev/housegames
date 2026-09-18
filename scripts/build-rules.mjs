@@ -34,6 +34,14 @@ function gameRules(ns) {
         phase: { '.write': `auth != null && ${hostOnly}` },
         createdAt: { '.write': `auth != null && ${hostOnly}` },
         settings: { '.write': `auth != null && ${hostOnly}` },
+        // Catch-all for whatever public, non-secret round state a given game
+        // needs (deck pointers, election tracker, board, current word queue,
+        // ...) that doesn't fit hostId/phase/createdAt/settings/players/votes.
+        // Without an explicit rule here, a partial write to an undeclared
+        // field silently falls through to the room-level create/delete-only
+        // rule and gets denied — this exists so no game has to discover that
+        // the hard way.
+        state: { '.write': `auth != null && ${hostOnly}` },
         players: {
           $uid: { '.write': `auth != null && (auth.uid === $uid || ${hostOnly})` },
         },
@@ -60,6 +68,22 @@ function gameRules(ns) {
   };
 }
 
+// Per-namespace additions that don't fit the generic template. Drawing
+// strokes aren't secret (only Pictionary's current word is, via the normal
+// secrets/ path) — any signed-in room member may read/write them.
+const NAMESPACE_EXTRAS = {
+  pictionary: {
+    strokes: {
+      $room: {
+        $round: {
+          '.read': 'auth != null',
+          '.write': 'auth != null',
+        },
+      },
+    },
+  },
+};
+
 const rules = {
   rules: {
     users: {
@@ -68,7 +92,10 @@ const rules = {
         '.write': 'auth != null && auth.uid === $uid',
       },
     },
-    ...Object.fromEntries(NAMESPACES.map((ns) => [ns, gameRules(ns)])),
+    ...Object.fromEntries(NAMESPACES.map((ns) => [
+      ns,
+      { ...gameRules(ns), ...(NAMESPACE_EXTRAS[ns] ?? {}) },
+    ])),
   },
 };
 

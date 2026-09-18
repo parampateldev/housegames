@@ -200,7 +200,7 @@ function EmpireApp({ uid, name }: { uid: string; name: string }) {
           <Field label="Secret category">
             <TextInput value={category} onChange={(e) => setCategory(e.target.value)} placeholder="Cities" />
           </Field>
-          <label className="card label timer-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', margin: '22px 0' }}>
+          <label style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', margin: '22px 0', fontSize: 13 }}>
             Reveal timer
             <button type="button" className={'toggle-timer' + (timerOn ? ' on' : '')} onClick={() => setTimerOn((v) => !v)}>{timerOn ? 'On' : 'Off'}</button>
           </label>
