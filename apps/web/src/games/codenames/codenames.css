@@ -1,0 +1,20 @@
+.cn .hero { padding: 8vh clamp(22px,8vw,130px); }
+.cn .actions { display: flex; gap: 12px; margin-top: 30px; flex-wrap: wrap; }
+.cn .team-pick { display: flex; gap: 14px; margin: 18px 0; flex-wrap: wrap; }
+.cn .team-card { flex: 1; min-width: 200px; padding: 18px; border-radius: 12px; border: 2px solid transparent; }
+.cn .team-card.red { background: #f8d9d2; }
+.cn .team-card.blue { background: #d9e6f8; }
+.cn .board { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin: 20px 0; }
+.cn .cell { aspect-ratio: 3/2; border-radius: 8px; border: 1px solid var(--hg-border-strong); display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; text-align: center; padding: 4px; cursor: pointer; background: var(--hg-card); text-transform: uppercase; }
+.cn .cell.revealed.red { background: #c1493a; color: #fff; }
+.cn .cell.revealed.blue { background: #2b5c8a; color: #fff; }
+.cn .cell.revealed.neutral { background: #cbbcad; color: #4a3f36; }
+.cn .cell.revealed.assassin { background: #1a1511; color: #fff; }
+.cn .cell.spy-red { box-shadow: inset 0 0 0 3px #c1493a; }
+.cn .cell.spy-blue { box-shadow: inset 0 0 0 3px #2b5c8a; }
+.cn .cell.spy-neutral { box-shadow: inset 0 0 0 3px #cbbcad; }
+.cn .cell.spy-assassin { box-shadow: inset 0 0 0 3px #1a1511; }
+.cn .status-row { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin: 14px 0; }
+.cn .clue-form { display: flex; gap: 10px; align-items: flex-end; flex-wrap: wrap; margin: 14px 0; }
+.cn .clue-form input[type=number] { width: 70px; padding: 12px; border: 1px solid var(--hg-border-strong); border-radius: 6px; }
+@media (max-width: 500px) { .cn .cell { font-size: 10px; } }

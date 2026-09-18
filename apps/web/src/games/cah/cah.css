@@ -1,0 +1,10 @@
+.cah .hero { padding: 8vh clamp(22px,8vw,130px); }
+.cah .actions { display: flex; gap: 12px; margin-top: 30px; flex-wrap: wrap; }
+.cah .black-card { background: var(--hg-ink); color: #fff; padding: 30px; border-radius: 16px; font-family: var(--hg-font-display); font-style: italic; font-size: clamp(20px,3.4vw,28px); margin: 18px 0; }
+.cah .hand { display: flex; gap: 10px; flex-wrap: wrap; margin: 18px 0; }
+.cah .white-card { flex: 1; min-width: 150px; max-width: 220px; background: #fffaf3; border: 1px solid var(--hg-border-strong); border-radius: 10px; padding: 16px; font-size: 14px; cursor: pointer; text-align: left; }
+.cah .white-card.chosen { border-color: var(--hg-rust); box-shadow: 0 0 0 2px var(--hg-rust); }
+.cah .white-card.submitted { opacity: .5; cursor: default; }
+.cah .scoreboard { display: flex; flex-direction: column; gap: 6px; margin: 14px 0; }
+.cah .scoreboard .row { display: flex; justify-content: space-between; padding: 8px 12px; background: var(--hg-card); border: 1px solid var(--hg-border); border-radius: 8px; font-size: 14px; }
+.cah .czar-badge { font-size: 11px; text-transform: uppercase; letter-spacing: .08em; color: var(--hg-rust); }

@@ -1,5 +1,4 @@
 import { lazy, type ComponentType } from 'react';
-import { ComingSoon } from './ComingSoon';
 
 export type GameEntry = {
   slug: string;
@@ -8,10 +7,6 @@ export type GameEntry = {
   minPlayers: number;
   Component: ComponentType;
 };
-
-function comingSoon(label: string): ComponentType {
-  return () => ComingSoon({ label });
-}
 
 export const GAMES: GameEntry[] = [
   {
@@ -47,7 +42,7 @@ export const GAMES: GameEntry[] = [
     label: 'Secret Hitler',
     tagline: 'Elect governments, enact policy, uncover the fascists.',
     minPlayers: 5,
-    Component: comingSoon('Secret Hitler'),
+    Component: lazy(() => import('./secret-hitler')),
   },
   {
     slug: 'spyfall',
@@ -61,7 +56,7 @@ export const GAMES: GameEntry[] = [
     label: 'Codenames',
     tagline: 'Give one-word clues to lead your team across the board.',
     minPlayers: 4,
-    Component: comingSoon('Codenames'),
+    Component: lazy(() => import('./codenames')),
   },
   {
     slug: 'pictionary',
@@ -96,7 +91,7 @@ export const GAMES: GameEntry[] = [
     label: 'Cards Against Humanity',
     tagline: 'Fill in the blank. The judge decides the winner.',
     minPlayers: 3,
-    Component: comingSoon('Cards Against Humanity'),
+    Component: lazy(() => import('./cah')),
   },
 ];
 
