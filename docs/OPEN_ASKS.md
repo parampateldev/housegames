@@ -39,15 +39,44 @@ was deployed, so nothing gets dropped under time pressure. Newest at top.
 - [x] Em dash / en dash sweep: zero remain anywhere in the repo (verified
       by a full-repo grep, not just spot-checked)
 
+## Local-player (no-phone) deadlock sweep
+Live-reproduced and fixed five real "the game can never proceed" bugs,
+each the same root cause: a required active role/office was rendered
+only for the currently signed-in identity, with no host-proxy for a
+local player holding that role.
+- [x] Secret Hitler: nomination, voting, and both legislative discard
+      steps now have host-side proxy UI.
+- [x] Mafia/Werewolf: a local Doctor/Detective/Mafia/Witch can now have
+      their night action submitted by the host, per-role.
+- [x] Cards Against Humanity: a local Czar can now judge; a local
+      non-Czar player can now submit a card. Both were previously
+      permanent blockers since "advance the round" required 100%
+      participation.
+- [x] Wavelength: a local Psychic's clue-giving UI was fetched but never
+      rendered (dead code from the interrupted first pass) -- wired up.
+- [x] Imposter: voting requires every player; added host-proxy voting
+      per local player, plus a real "guess for them" input (previously
+      just a blank "they pass").
+- Verified Spyfall (host has a manual "reveal result" override) and
+  Codenames' team-guess step (a team-wide action, not a single office)
+  don't have this failure mode.
+
+## Firebase empty-array crash (found via live reproduction)
+- [x] Realtime Database drops a field written as `[]` entirely -- it
+  comes back `undefined` on read, not `[]`. This crashed Secret Hitler
+  outright (`role.teammates.length` for any Liberal) and was a latent
+  crash waiting to happen in Mafia/Werewolf (`lastDeaths` whenever
+  nobody died) and CAH (`reveals` between rounds). All three now guard
+  with `?.` / `?? []` before touching `.length`/`.map`/`.join`. This is
+  a systemic pattern worth remembering for any future array field.
+
 ## Known deliberate simplifications (not bugs, just scoped down under time pressure)
-- Local (phoneless) players: fully supported at the lobby level (add,
-  remove, promote to host) in every game. Host-side "submit on their
-  behalf" is wired for Empire's word submission and a few other games'
-  central action; not every single phase of every game proxies a local
-  player's turn. A local player can always still be walked through their
-  turn verbally at the table.
 - Secret Hitler ships without executive powers (investigate/execute/
   special election) for v1, just the core election-and-legislative loop.
 
 ## Housekeeping
 - [x] Pushed to GitHub after every meaningful change; CI green throughout
+- [x] Live-tested Empire, Mafia, Secret Hitler, Codenames, and Pictionary
+  end to end against the real deployed site and real Firebase backend,
+  not just typecheck/unit tests -- this is how the deadlock and
+  empty-array bugs above were actually found.
