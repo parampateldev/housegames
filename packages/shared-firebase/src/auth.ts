@@ -7,6 +7,7 @@ import {
   updateProfile,
   signOut,
   onAuthStateChanged,
+  sendEmailVerification,
   type User,
 } from 'firebase/auth';
 import { auth } from './firebase';
@@ -18,6 +19,28 @@ export function isHostEligible(user: User | null): boolean {
   return Boolean(user && !user.isAnonymous);
 }
 
+/** A basic, deliberately strict shape check so obviously-fake input ("asdf") never reaches Firebase. */
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+export function isPlausibleEmail(email: string): boolean {
+  return EMAIL_RE.test(email.trim());
+}
+
+export type PasswordStrength = 'weak' | 'medium' | 'strong';
+
+/** Length + character-class variety, no external list, good enough for a casual party-game signup. */
+export function passwordStrength(password: string): PasswordStrength {
+  let score = 0;
+  if (password.length >= 6) score += 1;
+  if (password.length >= 10) score += 1;
+  if (password.length >= 14) score += 1;
+  if (/[a-z]/.test(password) && /[A-Z]/.test(password)) score += 1;
+  if (/\d/.test(password)) score += 1;
+  if (/[^A-Za-z0-9]/.test(password)) score += 1;
+  if (score <= 2) return 'weak';
+  if (score <= 4) return 'medium';
+  return 'strong';
+}
+
 export async function signInWithGoogle(): Promise<User> {
   if (!auth) throw new Error('Firebase is not configured');
   const cred = await signInWithPopup(auth, new GoogleAuthProvider());
@@ -26,8 +49,11 @@ export async function signInWithGoogle(): Promise<User> {
 
 export async function signUpWithEmail(email: string, password: string, displayName: string): Promise<User> {
   if (!auth) throw new Error('Firebase is not configured');
+  if (!isPlausibleEmail(email)) throw new Error('Enter a real email address');
+  if (password.length < 6) throw new Error('Password must be at least 6 characters');
   const cred = await createUserWithEmailAndPassword(auth, email, password);
   await updateProfile(cred.user, { displayName });
+  await sendEmailVerification(cred.user).catch(() => {});
   return cred.user;
 }
 

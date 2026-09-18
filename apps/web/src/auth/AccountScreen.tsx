@@ -1,7 +1,28 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, BackLink, Button, Field, TextInput, ErrorText } from '@ui/index';
+import { isPlausibleEmail, passwordStrength, type PasswordStrength } from '@fb/index';
 import { useAuth } from './AuthContext';
+
+const STRENGTH_COPY: Record<PasswordStrength, { label: string; color: string; width: string }> = {
+  weak: { label: 'Weak', color: 'var(--hg-error)', width: '33%' },
+  medium: { label: 'Medium', color: 'var(--hg-highlight)', width: '66%' },
+  strong: { label: 'Strong', color: 'var(--hg-success)', width: '100%' },
+};
+
+function StrengthMeter({ password }: { password: string }) {
+  if (!password) return null;
+  const s = passwordStrength(password);
+  const { label, color, width } = STRENGTH_COPY[s];
+  return (
+    <div style={{ marginTop: 8 }}>
+      <div style={{ height: 4, background: 'var(--hg-border)', borderRadius: 999, overflow: 'hidden' }}>
+        <div style={{ height: '100%', width, background: color, transition: 'width .15s' }} />
+      </div>
+      <span style={{ fontSize: 12, color }}>{label}</span>
+    </div>
+  );
+}
 
 export function AccountScreen() {
   const nav = useNavigate();
@@ -9,9 +30,11 @@ export function AccountScreen() {
   const [mode, setMode] = useState<'in' | 'up'>('in');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [name, setName] = useState('');
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
+  const [justSignedUp, setJustSignedUp] = useState(false);
 
   if (user && !user.isAnonymous) {
     return (
@@ -19,6 +42,11 @@ export function AccountScreen() {
         <BackLink onClick={() => nav('/')} />
         <h2 style={{ fontFamily: 'var(--hg-font-display)', fontStyle: 'italic' }}>You're signed in</h2>
         <p className="hg-note">{user.displayName ?? user.email}</p>
+        {!user.emailVerified && user.email && (
+          <p className="hg-note" style={{ color: 'var(--hg-highlight)' }}>
+            Check {user.email} for a verification link.
+          </p>
+        )}
         <Button ghost onClick={() => signOut().then(() => nav('/'))}>Sign out</Button>
       </Card>
     );
@@ -26,16 +54,47 @@ export function AccountScreen() {
 
   async function submit() {
     setError('');
+    if (!isPlausibleEmail(email)) {
+      setError('Enter a real email address');
+      return;
+    }
+    if (password.length < 6) {
+      setError('Password must be at least 6 characters');
+      return;
+    }
+    if (mode === 'up' && password !== confirmPassword) {
+      setError("Passwords don't match");
+      return;
+    }
+    if (mode === 'up' && !name.trim()) {
+      setError('Add your name');
+      return;
+    }
     setBusy(true);
     try {
-      if (mode === 'in') await signInEmail(email, password);
-      else await signUpEmail(email, password, name);
-      nav('/');
+      if (mode === 'in') {
+        await signInEmail(email, password);
+        nav('/');
+      } else {
+        await signUpEmail(email, password, name.trim());
+        setJustSignedUp(true);
+      }
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Something went wrong');
     } finally {
       setBusy(false);
     }
+  }
+
+  if (justSignedUp) {
+    return (
+      <Card>
+        <div className="hg-eyebrow">Almost there</div>
+        <h2 style={{ fontFamily: 'var(--hg-font-display)', fontStyle: 'italic' }}>Check your email</h2>
+        <p className="hg-note">We sent a verification link to {email}. Your account works right away, verifying just confirms it's really you.</p>
+        <Button wide onClick={() => nav('/')} style={{ marginTop: 18 }}>Continue to Housegames</Button>
+      </Card>
+    );
   }
 
   return (
@@ -64,11 +123,23 @@ export function AccountScreen() {
         </Field>
       )}
       <Field label="Email">
-        <TextInput type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@example.com" />
+        <TextInput
+          type="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          placeholder="you@example.com"
+          onBlur={() => { if (email && !isPlausibleEmail(email)) setError('That doesn\'t look like a real email address'); }}
+        />
       </Field>
       <Field label="Password">
-        <TextInput type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" />
+        <TextInput type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="At least 6 characters" minLength={6} />
       </Field>
+      {mode === 'up' && <StrengthMeter password={password} />}
+      {mode === 'up' && (
+        <Field label="Confirm password">
+          <TextInput type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} placeholder="Type it again" />
+        </Field>
+      )}
       <ErrorText>{error}</ErrorText>
       <Button wide disabled={busy} onClick={submit} style={{ marginTop: 18 }}>
         {mode === 'in' ? 'Sign in' : 'Create account'}
