@@ -1,0 +1,11 @@
+<!doctype html>
+<meta charset="utf-8" />
+<script>
+  // GitHub Pages has no server-side routing, so a deep link like
+  // /housegames/mafia/ABCDE 404s server-side. This captures the path GitHub
+  // Pages couldn't serve and hands it to the SPA via a query param; main.tsx
+  // restores the real URL with history.replaceState before the router mounts.
+  var path = location.pathname.slice('/housegames/'.length) + location.search + location.hash;
+  location.replace('/housegames/?redirect=' + encodeURIComponent(path));
+</script>
+<title>Housegames</title>

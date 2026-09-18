@@ -1,0 +1,10 @@
+.sf .hero { padding: 6vh clamp(22px,8vw,130px); }
+.sf .actions { display: flex; gap: 12px; margin-top: 24px; flex-wrap: wrap; }
+.sf .role-card { background: var(--hg-ink); color: #fff; border-radius: 18px; padding: 40px 28px; text-align: center; margin: 20px auto; max-width: 420px; }
+.sf .role-card .loc { font-family: var(--hg-font-display); font-style: italic; color: var(--hg-highlight); font-size: clamp(28px,5vw,40px); }
+.sf .role-card .role { margin-top: 10px; font-size: 16px; color: #d9cfc4; }
+.sf .role-card .spy { font-family: var(--hg-font-display); font-style: italic; color: var(--hg-imposter-red); font-size: clamp(28px,5vw,40px); }
+.sf .locations-list { display: flex; flex-wrap: wrap; gap: 6px; margin: 16px 0; max-width: 600px; }
+.sf .locations-list span { border: 1px solid var(--hg-border-strong); border-radius: 999px; padding: 5px 12px; font-size: 12px; }
+.sf .room-head { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 18px; }
+.sf .center { text-align: center; margin: 40px 0; }

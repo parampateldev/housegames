@@ -1,0 +1,78 @@
+/* Housegames design tokens — carried over verbatim from empire/imposter's
+   shared warm-editorial aesthetic. One visual world across all 12 games. */
+:root {
+  --hg-bg: #f4eee5;
+  --hg-bg-accent: #e9cdb2;
+  --hg-ink: #1a1511;
+  --hg-rust: #bd3e29;
+  --hg-card: #fffaf3;
+  --hg-border: #d8cbbd;
+  --hg-border-strong: #cbbcad;
+  --hg-muted: #655c55;
+  --hg-muted-2: #8b7f75;
+  --hg-success: #28794b;
+  --hg-error: #a12e20;
+  --hg-highlight: #e5aa74;
+  --hg-imposter-red: #e0705a;
+  --hg-shadow-color: #c8b9a8;
+  --hg-font-body: 'DM Sans', system-ui, sans-serif;
+  --hg-font-display: 'Playfair Display', Georgia, serif;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+body.hg {
+  margin: 0;
+  min-width: 320px;
+  background: radial-gradient(circle at 80% 15%, var(--hg-bg-accent) 0, transparent 30%), var(--hg-bg);
+  color: var(--hg-ink);
+  font-family: var(--hg-font-body);
+  font-synthesis: none;
+}
+
+.hg-eyebrow {
+  text-transform: uppercase;
+  letter-spacing: .18em;
+  font-size: 11px;
+  color: var(--hg-muted-2);
+}
+
+.hg-headline {
+  font-size: clamp(64px, 11vw, 150px);
+  line-height: .83;
+  letter-spacing: -.07em;
+  margin: 22px 0;
+  text-wrap: balance;
+}
+.hg-headline em {
+  font-family: var(--hg-font-display);
+  color: var(--hg-rust);
+  font-weight: 600;
+  font-style: italic;
+}
+
+.hg-lead {
+  font-size: clamp(17px, 2vw, 24px);
+  max-width: 600px;
+  color: var(--hg-muted);
+}
+
+.hg-card {
+  width: min(640px, calc(100% - 32px));
+  margin: 5vh auto;
+  background: var(--hg-card);
+  padding: 44px;
+  border: 1px solid var(--hg-border);
+  box-shadow: 15px 15px 0 var(--hg-shadow-color);
+}
+
+.hg-error-text { color: var(--hg-error); font-size: 13px; margin-top: 10px; }
+.hg-note { color: var(--hg-muted-2); font-size: 13px; }
+
+@media (max-width: 700px) {
+  .hg-card { padding: 26px; box-shadow: 8px 8px 0 var(--hg-shadow-color); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hg * { animation-duration: .001ms !important; transition-duration: .001ms !important; }
+}

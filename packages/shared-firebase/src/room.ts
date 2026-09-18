@@ -1,0 +1,144 @@
+import {
+  ref, set, update, get, remove, onValue, type Database,
+} from 'firebase/database';
+import { db } from './firebase';
+
+export type BasePlayer = { id: string; name: string; connected?: boolean };
+
+export type BaseRoom<Settings, Player extends BasePlayer = BasePlayer> = {
+  hostId: string;
+  phase: string;
+  createdAt: number;
+  settings: Settings;
+  players: Record<string, Player>;
+};
+
+function requireDb(): Database {
+  if (!db) throw new Error('Firebase is not configured');
+  return db;
+}
+
+export const roomPath = (ns: string, code: string) => `${ns}/rooms/${code}`;
+export const roomRef = (ns: string, code: string) => ref(requireDb(), roomPath(ns, code));
+
+export function watchRoom<R extends BaseRoom<unknown>>(
+  ns: string,
+  code: string,
+  cb: (room: R | null) => void,
+  onError?: (message: string) => void,
+) {
+  return onValue(
+    roomRef(ns, code),
+    (snap) => cb(snap.val() as R | null),
+    (err) => onError?.(err.message),
+  );
+}
+
+export async function createRoom<Settings, Player extends BasePlayer>(
+  ns: string,
+  code: string,
+  hostId: string,
+  hostPlayer: Player,
+  settings: Settings,
+  initialPhase = 'lobby',
+): Promise<void> {
+  const database = requireDb();
+  await update(ref(database), {
+    [`${roomPath(ns, code)}/hostId`]: hostId,
+    [`${roomPath(ns, code)}/phase`]: initialPhase,
+    [`${roomPath(ns, code)}/createdAt`]: Date.now(),
+    [`${roomPath(ns, code)}/settings`]: settings,
+    [`${roomPath(ns, code)}/players/${hostId}`]: hostPlayer,
+  });
+}
+
+export async function joinRoom<Player extends BasePlayer>(ns: string, code: string, player: Player): Promise<void> {
+  await set(ref(requireDb(), `${roomPath(ns, code)}/players/${player.id}`), player);
+}
+
+export async function roomExists(ns: string, code: string): Promise<boolean> {
+  const snap = await get(roomRef(ns, code));
+  return snap.exists();
+}
+
+/** Host-authoritative phase change. Rules re-check this write, not a clock — see docs. */
+export async function setPhase(ns: string, code: string, hostId: string, phase: string): Promise<void> {
+  const snap = await get(roomRef(ns, code));
+  const room = snap.val() as BaseRoom<unknown> | null;
+  if (room?.hostId !== hostId) throw new Error('Only the host can advance the game');
+  await set(ref(requireDb(), `${roomPath(ns, code)}/phase`), phase);
+}
+
+/**
+ * Grants a non-host player (this round's czar, spymaster, artist, ...)
+ * read/write on `secrets` and `hostReveals` for the room, without widening
+ * any rule beyond one more dynamic uid lookup — see scripts/build-rules.mjs.
+ * Only the host may call this.
+ */
+export async function setPrivilegedUid(ns: string, code: string, hostId: string, targetUid: string | null): Promise<void> {
+  const snap = await get(roomRef(ns, code));
+  const room = snap.val() as BaseRoom<unknown> | null;
+  if (room?.hostId !== hostId) throw new Error('Only the host can grant round privileges');
+  await set(ref(requireDb(), `${roomPath(ns, code)}/privilegedUid`), targetUid);
+}
+
+export async function saveSettings<Settings>(ns: string, code: string, hostId: string, settings: Settings): Promise<void> {
+  const snap = await get(roomRef(ns, code));
+  const room = snap.val() as BaseRoom<Settings> | null;
+  if (room?.hostId !== hostId) throw new Error('Only the host can change settings');
+  await set(ref(requireDb(), `${roomPath(ns, code)}/settings`), settings);
+}
+
+export async function updatePlayer<Player extends BasePlayer>(
+  ns: string,
+  code: string,
+  uid: string,
+  patch: Partial<Player>,
+): Promise<void> {
+  await update(ref(requireDb(), `${roomPath(ns, code)}/players/${uid}`), patch);
+}
+
+export async function removePlayer(ns: string, code: string, hostId: string, targetUid: string): Promise<void> {
+  const snap = await get(roomRef(ns, code));
+  const room = snap.val() as BaseRoom<unknown> | null;
+  if (room?.hostId !== hostId) throw new Error('Only the host can remove players');
+  if (targetUid === hostId) throw new Error('The host cannot remove themselves');
+  await remove(ref(requireDb(), `${roomPath(ns, code)}/players/${targetUid}`));
+}
+
+/**
+ * Leaving player is dropped; if they were host, the lexicographically-smallest
+ * remaining uid becomes host (deterministic — every client computes the same
+ * winner with no coordination). Room is deleted once nobody remains.
+ */
+export async function leaveRoom(ns: string, code: string, uid: string, extraPathsToClear: string[] = []): Promise<void> {
+  const database = requireDb();
+  const snap = await get(roomRef(ns, code));
+  const room = snap.val() as BaseRoom<unknown> | null;
+  if (!room?.players?.[uid]) return;
+
+  const clears = Object.fromEntries(extraPathsToClear.map((p) => [p, null]));
+
+  if (room.hostId !== uid) {
+    await update(ref(database), {
+      [`${roomPath(ns, code)}/players/${uid}`]: null,
+      ...clears,
+    });
+    return;
+  }
+
+  const nextHost = Object.keys(room.players).filter((id) => id !== uid).sort()[0];
+  if (!nextHost) {
+    await update(ref(database), {
+      [roomPath(ns, code)]: null,
+      ...clears,
+    });
+    return;
+  }
+
+  await update(ref(database), {
+    [`${roomPath(ns, code)}/hostId`]: nextHost,
+    [`${roomPath(ns, code)}/players/${uid}`]: null,
+    ...clears,
+  });
+}
