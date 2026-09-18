@@ -174,7 +174,7 @@ function App({ uid, name }: { uid: string; name: string }) {
           <div className="room-head"><div className="hg-eyebrow">Room {code}</div>{share && <QR url={share} size={110} />}</div>
           <button className="mini" onClick={() => { navigator.clipboard.writeText(share); toast('Link copied'); }} style={{ marginBottom: 16 }}>Copy link</button>
           <div className="scoreboard"><span>Team A: {s?.scoreA ?? 0}</span><span>Team B: {s?.scoreB ?? 0}</span></div>
-          <PlayerList players={players.map((p) => ({ ...p, name: `${p.name} (${p.team ?? '—'})` }))} hostId={room.hostId} />
+          <PlayerList players={players.map((p) => ({ ...p, name: `${p.name} (${p.team ?? '-'})` }))} hostId={room.hostId} />
           <div className="actions">
             <Button onClick={() => setTeam(code, uid, 'A')}>Join Team A</Button>
             <Button onClick={() => setTeam(code, uid, 'B')}>Join Team B</Button>
@@ -207,7 +207,7 @@ function App({ uid, name }: { uid: string; name: string }) {
             ) : <p className="hg-note">Waiting for your team to guess…</p>
           ) : (
             room.phase === 'clueGiven'
-              ? <p className="hg-note">Clue: <b>{s?.clue}</b> — your team is guessing.</p>
+              ? <p className="hg-note">Clue: <b>{s?.clue}</b>, your team is guessing.</p>
               : <p className="hg-note">The psychic is thinking of a clue…</p>
           )}
           <ErrorText>{error}</ErrorText>

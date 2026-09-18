@@ -85,7 +85,7 @@ function CNApp({ uid, name }: { uid: string; name: string }) {
         <section className="hero">
           <div className="hg-eyebrow">One word. One number. A whole team.</div>
           <h1 className="hg-headline">Code<em>names.</em></h1>
-          <p className="hg-lead">Give your team one-word clues to find your agents on the board before the other team — or the assassin.</p>
+          <p className="hg-lead">Give your team one-word clues to find your agents on the board before the other team, or the assassin.</p>
           <div className="actions">
             <Button onClick={host}>Host a game</Button>
             <Button ghost onClick={() => setScreen('joinForm')}>Join with code</Button>
@@ -199,7 +199,7 @@ function CNApp({ uid, name }: { uid: string; name: string }) {
           </Card>
         ) : (
           <>
-            {room.settings.clueWord && <p className="hg-note">Clue: <b>{room.settings.clueWord}</b> ({room.settings.clueNumber}) — {room.settings.guessesLeft} guesses left</p>}
+            {room.settings.clueWord && <p className="hg-note">Clue: <b>{room.settings.clueWord}</b> ({room.settings.clueNumber}), {room.settings.guessesLeft} guesses left</p>}
             {Board}
             {isSpymaster && room.phase === 'clue' && (
               <div className="clue-form">

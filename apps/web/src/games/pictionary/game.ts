@@ -4,7 +4,7 @@ export type Phase = 'lobby' | 'drawing' | 'roundEnd' | 'finished';
 export type Player = { id: string; name: string; score: number; connected?: boolean };
 // round/artistId/lastWord live here (not as separate room fields) because
 // only hostId/phase/createdAt/settings/players/votes/privilegedUid have
-// per-field write rules — see firebase.ts's note on the strokes path for
+// per-field write rules, see firebase.ts's note on the strokes path for
 // the same constraint applied to a case that couldn't reuse settings.
 export type Settings = {
   roundSeconds: number;
@@ -43,8 +43,7 @@ export function checkGuess(guess: string, word: string): boolean {
 
 /**
  * A single unbroken stroke (scribbling for seconds without lifting) could
- * otherwise produce an unbounded points array in one Firebase write —
- * decimate down to at most `max` evenly-spaced points, always keeping the
+ * otherwise produce an unbounded points array in one Firebase write, * decimate down to at most `max` evenly-spaced points, always keeping the
  * first and last so the stroke's endpoints are preserved.
  */
 export function decimateStroke(points: StrokePoint[], max = 300): StrokePoint[] {

@@ -9,11 +9,11 @@ import type { Player, Settings, DealResult } from './game';
 const NS = 'spyfall';
 
 // discussionEndsAt lives in settings (the only room field the host can
-// freely write) — it's cosmetic timing info, not secret, unlike location.
+// freely write), it's cosmetic timing info, not secret, unlike location.
 export type SpyfallSettings = Settings & { discussionEndsAt?: number };
 export type SpyfallRoom = BaseRoom<SpyfallSettings, Player> & { votes?: Record<string, string> };
 
-// The location is NEVER a public room field — that would leak it straight
+// The location is NEVER a public room field, that would leak it straight
 // to the spy. It only ever exists inside a per-uid secret: non-spies get it
 // as part of their role card; the spy gets it only once the round ends.
 export type MySecret =

@@ -7,7 +7,7 @@ export default defineConfig({
   // Vite's default envDir follows `root`, so apps/web/.env would be read
   // instead of the repo-root .env everyone actually uses (CI works anyway
   // since it injects real process.env vars, which Vite honors regardless
-  // of envDir — this only bit local `vite build`/`vite preview`).
+  // of envDir, this only bit local `vite build`/`vite preview`).
   envDir: path.resolve(__dirname),
   base: '/housegames/',
   plugins: [react()],

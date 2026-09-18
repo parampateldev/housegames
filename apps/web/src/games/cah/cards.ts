@@ -1,5 +1,5 @@
 // Original, PG-13, workplace-appropriate prompt/answer cards written for
-// this project — no official Cards Against Humanity text, to sidestep any
+// this project, no official Cards Against Humanity text, to sidestep any
 // licensing question on a public repo.
 
 export const BLACK_CARDS: string[] = [

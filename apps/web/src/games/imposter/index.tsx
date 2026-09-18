@@ -187,7 +187,7 @@ function LocalGame({ onExit }: { onExit: () => void }) {
             else setScreen('discuss');
           }}
           >
-            {L.revealIdx < L.players.length - 1 ? 'Hide — pass to next player' : 'Hide — start discussing'}
+            {L.revealIdx < L.players.length - 1 ? 'Hide, pass to next player' : 'Hide, start discussing'}
           </Button>
           <p className="hg-note" style={{ textAlign: 'center', marginTop: 14 }}>{L.revealIdx + 1} of {L.players.length}</p>
         </section>
@@ -237,7 +237,7 @@ function LocalGame({ onExit }: { onExit: () => void }) {
         <Card>
           <div style={{ textAlign: 'center' }}>
             <p className="win" style={{ fontFamily: 'var(--hg-font-display)', fontStyle: 'italic', fontSize: 32 }}>{accused.name} was the imposter!</p>
-            <p className="hg-lead" style={{ margin: '10px auto' }}>But a caught imposter gets one shot: hand them the phone — guess the secret word to steal the win.</p>
+            <p className="hg-lead" style={{ margin: '10px auto' }}>But a caught imposter gets one shot: hand them the phone, guess the secret word to steal the win.</p>
             <div className="row">
               <TextInput value={guessDraft} onChange={(e) => setGuessDraft(e.target.value)} placeholder="Guess the word" onKeyDown={(e) => e.key === 'Enter' && submitGuess()} />
               <button className="mini" onClick={submitGuess}>Guess</button>
@@ -268,7 +268,7 @@ function LocalGame({ onExit }: { onExit: () => void }) {
         <div className="resultcard">
           <p className={'verdict ' + cls}>{verdict}</p>
           <p className="hg-lead" style={{ margin: '8px auto' }}>
-            {L.outcome === 'crew' && `${accused?.name ?? ''} was caught${L.guess ? ` and guessed "${L.guess}" — wrong.` : '.'}`}
+            {L.outcome === 'crew' && `${accused?.name ?? ''} was caught${L.guess ? ` and guessed "${L.guess}", wrong.` : '.'}`}
             {L.outcome === 'steal' && `${accused?.name ?? ''} was caught… then guessed the word. Brutal.`}
             {L.outcome === 'imposter' && `${accused?.name ?? ''} was innocent.`}
           </p>
@@ -316,7 +316,7 @@ function OnlineGame({ uid, name, onExit }: { uid: string; name: string; onExit: 
     return watchMySecret(code, uid, setSecretState);
   }, [screen, code, uid]);
 
-  // Host-only reactive vote tally — runs whenever we're in vote phase and all votes are in.
+  // Host-only reactive vote tally, runs whenever we're in vote phase and all votes are in.
   useEffect(() => {
     if (!isHost || room?.phase !== 'vote' || !code || !room) return;
     const players = Object.values(room.players || {});
@@ -332,7 +332,7 @@ function OnlineGame({ uid, name, onExit }: { uid: string; name: string; onExit: 
         for (const t in counts) { if (counts[t] > max) { max = counts[t]; tops = [t]; } else if (counts[t] === max) tops.push(t); }
         if (tops.length !== 1) {
           await clearVotes(code);
-          await saveImposterSettings(code, room.hostId, { ...room.settings, voteNote: 'Tie vote — discuss and vote again.' });
+          await saveImposterSettings(code, room.hostId, { ...room.settings, voteNote: 'Tie vote, discuss and vote again.' });
           return;
         }
         const accused = tops[0];
@@ -630,7 +630,7 @@ function OnlineGame({ uid, name, onExit }: { uid: string; name: string; onExit: 
   const verdict = res?.outcome === 'crew' ? 'The group wins!' : res?.outcome === 'steal' ? 'The imposter steals it!' : 'The imposter survives!';
   const cls = res?.outcome === 'crew' ? 'win' : 'lose';
   const detail = res?.outcome === 'crew'
-    ? `${res?.accusedName ?? ''} was caught${res?.guess ? ` and guessed "${res.guess}" — wrong.` : '.'}`
+    ? `${res?.accusedName ?? ''} was caught${res?.guess ? ` and guessed "${res.guess}", wrong.` : '.'}`
     : res?.outcome === 'steal'
       ? `${res?.accusedName ?? ''} was caught… then guessed the word. Brutal.`
       : `${res?.accusedName ?? ''} was innocent.`;

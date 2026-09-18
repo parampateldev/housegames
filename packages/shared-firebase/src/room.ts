@@ -26,7 +26,7 @@ export const roomRef = (ns: string, code: string) => ref(requireDb(), roomPath(n
  * Every game's createRoom/joinRoom funnels through here so "recent rooms"
  * on the dashboard works platform-wide with no per-game wiring. Silent
  * no-op for guests (no persistent profile to attach it to) and never
- * throws — a failed recent-room write must never block joining a room.
+ * throws, a failed recent-room write must never block joining a room.
  */
 function rememberRoomForSignedInUser(ns: string, code: string, role: 'host' | 'guest') {
   const user = auth?.currentUser;
@@ -76,7 +76,7 @@ export async function roomExists(ns: string, code: string): Promise<boolean> {
   return snap.exists();
 }
 
-/** Host-authoritative phase change. Rules re-check this write, not a clock — see docs. */
+/** Host-authoritative phase change. Rules re-check this write, not a clock, see docs. */
 export async function setPhase(ns: string, code: string, hostId: string, phase: string): Promise<void> {
   const snap = await get(roomRef(ns, code));
   const room = snap.val() as BaseRoom<unknown> | null;
@@ -87,7 +87,7 @@ export async function setPhase(ns: string, code: string, hostId: string, phase: 
 /**
  * Grants a non-host player (this round's czar, spymaster, artist, ...)
  * read/write on `secrets` and `hostReveals` for the room, without widening
- * any rule beyond one more dynamic uid lookup — see scripts/build-rules.mjs.
+ * any rule beyond one more dynamic uid lookup, see scripts/build-rules.mjs.
  * Only the host may call this.
  */
 export async function setPrivilegedUid(ns: string, code: string, hostId: string, targetUid: string | null): Promise<void> {
@@ -113,7 +113,7 @@ export async function updatePlayer<Player extends BasePlayer>(
   await update(ref(requireDb(), `${roomPath(ns, code)}/players/${uid}`), patch);
 }
 
-/** Hands host to any uid already in the room — the rules require the target to be a current player. */
+/** Hands host to any uid already in the room, the rules require the target to be a current player. */
 export async function makeHost(ns: string, code: string, currentHostId: string, targetUid: string): Promise<void> {
   const snap = await get(roomRef(ns, code));
   const room = snap.val() as BaseRoom<unknown> | null;
@@ -151,7 +151,7 @@ export async function removePlayer(ns: string, code: string, hostId: string, tar
 
 /**
  * Leaving player is dropped; if they were host, the lexicographically-smallest
- * remaining uid becomes host (deterministic — every client computes the same
+ * remaining uid becomes host (deterministic, every client computes the same
  * winner with no coordination). Room is deleted once nobody remains.
  */
 export async function leaveRoom(ns: string, code: string, uid: string, extraPathsToClear: string[] = []): Promise<void> {

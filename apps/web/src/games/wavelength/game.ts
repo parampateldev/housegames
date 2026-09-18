@@ -12,7 +12,7 @@ export function scoreGuess(target: number, guess: number): number {
 }
 
 export function opponentCallCorrect(target: number, guess: number, call: 'left' | 'right'): boolean {
-  if (target === guess) return true; // dead center — either call is generous, but this keeps it simple & fair
+  if (target === guess) return true; // dead center, either call is generous, but this keeps it simple & fair
   const actual = target < guess ? 'left' : 'right';
   return call === actual;
 }

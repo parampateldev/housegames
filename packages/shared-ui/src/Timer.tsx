@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react';
 
 /**
- * Countdown display only — purely cosmetic. `endsAt` (or its absence) never
+ * Countdown display only, purely cosmetic. `endsAt` (or its absence) never
  * gates access to data; only an explicit phase/field write from the host
- * does that (see docs/ARCHITECTURE.md — Firebase rules are not re-evaluated
+ * does that (see docs/ARCHITECTURE.md, Firebase rules are not re-evaluated
  * on a clock tick, so nothing here is ever load-bearing for security).
  */
 export function Timer({ endsAt, onDone }: { endsAt: number; onDone?: () => void }) {

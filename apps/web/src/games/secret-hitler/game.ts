@@ -1,4 +1,4 @@
-// Pure logic for Secret Hitler — role assignment, policy deck, vote tally,
+// Pure logic for Secret Hitler, role assignment, policy deck, vote tally,
 // and win checks. No Firebase here; see firebase.ts for the host-brokered
 // data layer that calls into this.
 
@@ -33,7 +33,7 @@ export function shuffle<T>(items: T[], rng: () => number = Math.random): T[] {
 export function assignSecretHitlerRoles(playerIds: string[], rng: () => number = Math.random): RoleAssignment {
   const n = playerIds.length;
   const table = ROLE_TABLE[n];
-  if (!table) throw new Error('Secret Hitler needs 5–10 players');
+  if (!table) throw new Error('Secret Hitler needs 5-10 players');
 
   const shuffled = shuffle(playerIds, rng);
   const hitlerUid = shuffled[0];

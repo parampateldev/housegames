@@ -67,13 +67,13 @@ export async function kickPlayer(code: string, hostId: string, targetUid: string
 // history and no client streams raw pointermove events (see game.ts's
 // decimateStroke for the write-size cap). NOTE FOR COORDINATOR: this path
 // (pictionary/strokes/$room/$round) is NOT covered by the generic per-game
-// rule template (rooms/secrets/hostReveals/votes) — it needs its own rule.
+// rule template (rooms/secrets/hostReveals/votes), it needs its own rule.
 // Recommended addition to scripts/build-rules.mjs's gameRules('pictionary')
 // output, alongside the existing rooms/secrets/hostReveals block:
 //   strokes: { $room: { $round: { '.read': 'auth != null', '.write': 'auth != null' } } }
 // Drawing strokes aren't secret (only the WORD is, via the existing secrets
 // mechanism), so a blanket "any signed-in room member" read/write is
-// reasonable — tighten to host-or-current-artist-only if desired later.
+// reasonable, tighten to host-or-current-artist-only if desired later.
 const strokesPath = (code: string, round: number) => `${NS}/strokes/${code}/${round}`;
 
 export async function pushStroke(code: string, round: number, stroke: Stroke) {

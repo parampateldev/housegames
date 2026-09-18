@@ -5,7 +5,7 @@ import {
 import { readFileSync } from 'node:fs';
 
 // These tests exercise the ACTUAL rule engine against real reads/writes via
-// the Realtime Database emulator — unlike Empire's old security.test.ts,
+// the Realtime Database emulator, unlike Empire's old security.test.ts,
 // which only asserted the rules FILE contained certain substrings. A rule
 // that is logically wrong (like Empire's historical `now < endsAt` bug)
 // would sail through a string-match test; it cannot sail through this one.
@@ -35,7 +35,7 @@ const NS = 'empire';
 const ROOM = 'ABCDE';
 
 // The test context exposes the COMPAT (namespaced) Database API, not the
-// modular one the app itself uses — that's a rules-unit-testing detail,
+// modular one the app itself uses, that's a rules-unit-testing detail,
 // unrelated to what the app's own shared-firebase code does.
 function dbAs(uid: string | null) {
   const ctx = uid ? testEnv.authenticatedContext(uid) : testEnv.unauthenticatedContext();
@@ -129,7 +129,7 @@ describe('room creation & host handoff', () => {
   });
 });
 
-describe('secrets — never readable by the wrong uid, even briefly', () => {
+describe('secrets, never readable by the wrong uid, even briefly', () => {
   it('the owner can read their own secret', async () => {
     await seed(async (db) => {
       await db.ref(`${NS}/rooms/${ROOM}/hostId`).set('host1');
@@ -158,7 +158,7 @@ describe('secrets — never readable by the wrong uid, even briefly', () => {
   });
 });
 
-describe('host reveal — the exact shape of Empire\'s historical bug, re-verified', () => {
+describe('host reveal, the exact shape of Empire\'s historical bug, re-verified', () => {
   it('everyone can attach to the reveal node while it is empty', async () => {
     await seed(async (db) => {
       await db.ref(`${NS}/rooms/${ROOM}/hostId`).set('host1');
@@ -167,7 +167,7 @@ describe('host reveal — the exact shape of Empire\'s historical bug, re-verifi
     await assertSucceeds(guest.ref(`${NS}/hostReveals/${ROOM}`).once('value'));
   });
 
-  it('once populated, ONLY the current host can read it — access is decided by the write, not a clock', async () => {
+  it('once populated, ONLY the current host can read it, access is decided by the write, not a clock', async () => {
     await seed(async (db) => {
       await db.ref(`${NS}/rooms/${ROOM}/hostId`).set('host1');
       await db.ref(`${NS}/hostReveals/${ROOM}`).set({ words: ['taco', 'pizza'] });
@@ -195,7 +195,7 @@ describe('host reveal — the exact shape of Empire\'s historical bug, re-verifi
   });
 });
 
-describe('users/ — each account\'s data is private to that account', () => {
+describe('users/, each account\'s data is private to that account', () => {
   it('a user can read and write their own profile', async () => {
     const me = dbAs('u1');
     await assertSucceeds(me.ref('users/u1').set({ displayName: 'Me' }));
@@ -209,7 +209,7 @@ describe('users/ — each account\'s data is private to that account', () => {
   });
 });
 
-describe('cross-namespace smoke test — the generated template is identical everywhere', () => {
+describe('cross-namespace smoke test, the generated template is identical everywhere', () => {
   it('the "mafia" namespace enforces the same host-only phase write rule as "empire"', async () => {
     await seed(async (db) => {
       await db.ref('mafia/rooms/ZZZZZ/hostId').set('host1');

@@ -13,7 +13,7 @@ import { auth } from './firebase';
 
 export type { User };
 
-/** A host must be a real, non-anonymous account — that's what makes "save" persistent. */
+/** A host must be a real, non-anonymous account, that's what makes "save" persistent. */
 export function isHostEligible(user: User | null): boolean {
   return Boolean(user && !user.isAnonymous);
 }
@@ -37,7 +37,7 @@ export async function signInWithEmail(email: string, password: string): Promise<
   return cred.user;
 }
 
-/** Guests never get a persistent profile — just an anonymous uid for the room they're in. */
+/** Guests never get a persistent profile, just an anonymous uid for the room they're in. */
 export async function signInAsGuest(): Promise<User> {
   if (!auth) throw new Error('Firebase is not configured');
   const cred = await signInAnonymously(auth);

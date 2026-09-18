@@ -140,7 +140,7 @@ function App({ uid, name }: { uid: string; name: string }) {
         <Card>
           <div className="room-head"><div className="hg-eyebrow">Room {code}</div>{share && <QR url={share} size={110} />}</div>
           <button className="mini" onClick={() => { navigator.clipboard.writeText(share); toast('Link copied'); }} style={{ marginBottom: 16 }}>Copy link</button>
-          <PlayerList players={players.map((p) => ({ ...p, name: `${p.name} (${p.team ?? '—'}) · ${p.score ?? 0}pt` }))} hostId={room.hostId} />
+          <PlayerList players={players.map((p) => ({ ...p, name: `${p.name} (${p.team ?? '-'}) · ${p.score ?? 0}pt` }))} hostId={room.hostId} />
           <div className="actions"><Button onClick={() => setTeam(code, uid, 'A')}>Join Team A</Button><Button onClick={() => setTeam(code, uid, 'B')}>Join Team B</Button></div>
           {isHost && (
             <Field label="Category">

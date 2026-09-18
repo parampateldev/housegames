@@ -171,7 +171,7 @@ function CAHApp({ uid, name }: { uid: string; name: string }) {
         <div className="black-card">{room.settings.blackCard}</div>
 
         {room.phase === 'submitting' && (
-          isCzar ? <p className="hg-note">You're the Czar this round — sit tight while everyone picks a card.</p> :
+          isCzar ? <p className="hg-note">You're the Czar this round, sit tight while everyone picks a card.</p> :
           iSubmitted ? <p className="hg-note">Card submitted. Waiting on others…</p> : (
             <div className="hand">
               {hand?.hand.map((card, i) => (

@@ -1,4 +1,4 @@
-// Pure logic for Cards Against Humanity — deck shuffling/dealing without
+// Pure logic for Cards Against Humanity, deck shuffling/dealing without
 // repeats, czar rotation, and anonymize-then-reveal for judging.
 
 export function shuffle<T>(items: T[], rng: () => number = Math.random): T[] {
@@ -10,7 +10,7 @@ export function shuffle<T>(items: T[], rng: () => number = Math.random): T[] {
   return arr;
 }
 
-/** Draws `n` cards from `deck` starting at `drawIndex`, reshuffling a fresh full deck in if it runs out — so a card is never dealt twice within one continuous draw sequence, and the game never stalls on a long session. */
+/** Draws `n` cards from `deck` starting at `drawIndex`, reshuffling a fresh full deck in if it runs out, so a card is never dealt twice within one continuous draw sequence, and the game never stalls on a long session. */
 export function drawCards<T>(deck: T[], drawIndex: number, n: number, fullDeck: T[], rng: () => number = Math.random): { cards: T[]; nextDeck: T[]; nextDrawIndex: number } {
   let workingDeck = deck;
   let idx = drawIndex;
@@ -41,7 +41,7 @@ export function nextCzar(order: string[], currentCzarId: string): string {
 
 export type AnonymizedSubmissions = { order: string[]; cards: string[] };
 
-/** Shuffles {uid: card} into a parallel (order[], cards[]) pair so the czar never sees who played what — order[] is kept host-side only, revealed after judging. */
+/** Shuffles {uid: card} into a parallel (order[], cards[]) pair so the czar never sees who played what, order[] is kept host-side only, revealed after judging. */
 export function anonymizeSubmissions(submissions: Record<string, string>, rng: () => number = Math.random): AnonymizedSubmissions {
   const entries = shuffle(Object.entries(submissions), rng);
   return { order: entries.map(([uid]) => uid), cards: entries.map(([, card]) => card) };

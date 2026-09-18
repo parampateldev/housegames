@@ -29,7 +29,7 @@ export function RequireIdentity({ children }: { children: (identity: Identity) =
   async function submit() {
     const trimmed = draft.trim();
     if (trimmed.length < 1 || trimmed.length > 20) {
-      setError('Name must be 1–20 characters');
+      setError('Name must be 1-20 characters');
       return;
     }
     setBusy(true);

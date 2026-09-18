@@ -1,10 +1,10 @@
 # Housegames
 
-Twelve live-multiplayer party games, one room code away — [parampateldev.github.io/housegames](https://parampateldev.github.io/housegames/).
+Twelve live-multiplayer party games, one room code away. Live at [parampateldev.github.io/housegames](https://parampateldev.github.io/housegames/).
 
 **Games:** Empire, Imposter, Mafia, Werewolf, Secret Hitler, Spyfall, Codenames, Pictionary, Charades, Heads Up, Wavelength, Cards Against Humanity.
 
-Sign in with Google or email to host a room (so it can be saved to your account); anyone else joins as a guest with just a name — no account needed.
+Sign in with Google or email to host a room (so it can be saved to your account); anyone else joins as a guest with just a name, no account needed.
 
 ## Architecture
 
@@ -12,11 +12,11 @@ See the [architecture proposal](https://claude.ai/artifact/8UqqgLjjqwKM7TCawNf9p
 
 - **One Vite + React + TypeScript app** (`apps/web`) hosts all 12 games behind a shared nav, auth state, and design system, rather than 12 independent builds.
 - **Firebase Realtime Database**, namespaced per game (`empire/`, `mafia/`, `codenames/`, ...), with **Firebase Auth** (Google, email/password, anonymous).
-- **One security principle, everywhere:** a secret never lives inside a publicly-readable node. It lives at its own path (`$ns/secrets/$room/$uid`), gated per-uid — never widened to a group, never gated on a clock (see `packages/shared-firebase/src/secrets.ts` and the comment in `scripts/build-rules.mjs`). This is the direct fix for a real bug in Empire's history: a rules of the form `now < endsAt` looks reasonable but never re-evaluates as time passes, so a listener attached before the deadline kept reading secret data forever.
+- **One security principle, everywhere:** a secret never lives inside a publicly-readable node. It lives at its own path (`$ns/secrets/$room/$uid`), gated per-uid, never widened to a group, never gated on a clock (see `packages/shared-firebase/src/secrets.ts` and the comment in `scripts/build-rules.mjs`). This is the direct fix for a real bug in Empire's history: a rules of the form `now < endsAt` looks reasonable but never re-evaluates as time passes, so a listener attached before the deadline kept reading secret data forever.
 - **Two shared engines** instead of twelve bespoke implementations:
-  - `packages/shared-firebase` — the "secret-reveal" primitive (per-uid gated secrets, host-only aggregate reveals, generic room CRUD with deterministic host migration) used by nearly every game.
-  - `packages/game-engines/elimination-engine` — the night-action resolver (role assignment, doctor-save-before-kill ordering, day-vote tally, win check) shared by Mafia and Werewolf.
-- **Security rules are generated, not hand-copied** (`scripts/build-rules.mjs` → `database.rules.json`) — one template applied identically to all 12 namespaces, so there's no per-game copy-paste drift to typo.
+  - `packages/shared-firebase`, the "secret-reveal" primitive (per-uid gated secrets, host-only aggregate reveals, generic room CRUD with deterministic host migration) used by nearly every game.
+  - `packages/game-engines/elimination-engine`, the night-action resolver (role assignment, doctor-save-before-kill ordering, day-vote tally, win check) shared by Mafia and Werewolf.
+- **Security rules are generated, not hand-copied** (`scripts/build-rules.mjs` → `database.rules.json`), one template applied identically to all 12 namespaces, so there's no per-game copy-paste drift to typo.
 
 ## Repo layout
 
@@ -52,12 +52,12 @@ All three run in CI (`.github/workflows/deploy.yml`) before every deploy.
 
 ## Deployment
 
-Push to `main` → GitHub Actions runs the full test suite, builds, and deploys to GitHub Pages. Firebase config is injected at build time from repo secrets (`VITE_FIREBASE_*`); nothing sensitive is checked in (the Firebase web API key is safe to expose — access control is enforced entirely by the security rules, not by hiding the key).
+Push to `main` → GitHub Actions runs the full test suite, builds, and deploys to GitHub Pages. Firebase config is injected at build time from repo secrets (`VITE_FIREBASE_*`); nothing sensitive is checked in (the Firebase web API key is safe to expose, access control is enforced entirely by the security rules, not by hiding the key).
 
 ## Adding a 13th game
 
-1. `apps/web/src/games/<slug>/` — `game.ts` (pure logic, unit-tested), `firebase.ts` (data layer on `@fb/index`, namespaced), `<slug>.css` (scoped under a short wrapper class so it can never collide with another game's classnames), `index.tsx` (default export, wrapped in `RequireIdentity`).
+1. `apps/web/src/games/<slug>/`, `game.ts` (pure logic, unit-tested), `firebase.ts` (data layer on `@fb/index`, namespaced), `<slug>.css` (scoped under a short wrapper class so it can never collide with another game's classnames), `index.tsx` (default export, wrapped in `RequireIdentity`).
 2. Add the namespace to `NAMESPACES` in `scripts/build-rules.mjs`, re-run it, redeploy rules.
 3. Add an entry to `apps/web/src/games/registry.ts`.
 
-No other shared file should need to change — that's the point of the shared engines.
+No other shared file should need to change, that's the point of the shared engines.

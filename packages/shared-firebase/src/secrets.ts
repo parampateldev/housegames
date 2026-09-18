@@ -3,14 +3,13 @@ import { db } from './firebase';
 
 /**
  * The platform's one secrecy primitive. A secret NEVER lives inside the
- * publicly-readable room node — it lives at its own path, gated per-uid, so
+ * publicly-readable room node, it lives at its own path, gated per-uid, so
  * a client that isn't an intended viewer can never read it, not even
  * briefly. Security rules for every game grant:
  *   secrets/$room/$uid  .read: auth.uid === $uid || <current hostId>
  *   secrets/$room/$uid  .write: <current hostId only>
  * To show the same secret to several players (e.g. "everyone but the
- * active player"), fan the same value out to each intended uid's own path —
- * never widen a single path's read rule to a group.
+ * active player"), fan the same value out to each intended uid's own path, * never widen a single path's read rule to a group.
  */
 function requireDb(): Database {
   if (!db) throw new Error('Firebase is not configured');
@@ -82,8 +81,8 @@ export function watchAllSecrets<T>(ns: string, code: string, uids: string[], cb:
 
 /**
  * Host-only aggregate reveal (Empire's pattern): the node is readable by
- * anyone while empty — so every client can attach a listener without a
- * permission error — but the moment the host writes data into it, the rule
+ * anyone while empty, so every client can attach a listener without a
+ * permission error, but the moment the host writes data into it, the rule
  * restricts reads to whoever the room's CURRENT host is. Access is decided
  * purely by that write, never by a clock, and it re-resolves automatically
  * if host migrates mid-round.

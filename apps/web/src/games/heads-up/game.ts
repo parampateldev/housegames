@@ -6,7 +6,7 @@ export function nextGuesser(players: Player[], currentGuesserId: string): string
   return players[(idx + 1) % players.length]?.id ?? players[0]?.id ?? '';
 }
 
-/** The uids who SHOULD see the current word — everyone except the active guesser. */
+/** The uids who SHOULD see the current word, everyone except the active guesser. */
 export function audienceFor(players: Player[], guesserId: string): string[] {
   return players.filter((p) => p.id !== guesserId).map((p) => p.id);
 }

@@ -1,4 +1,4 @@
-// An original, generic word pool (plain nouns — people/places/things),
+// An original, generic word pool (plain nouns, people/places/things),
 // written for this project to avoid any licensing question around
 // fan-compiled Codenames word lists. 382 unique words.
 export const CODENAMES_WORDS: string[] = [

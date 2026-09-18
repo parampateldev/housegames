@@ -1,4 +1,4 @@
-// Ported verbatim from the original empire repo's src/game.ts — same
+// Ported verbatim from the original empire repo's src/game.ts, same
 // capture/winner mechanics, unchanged, because this logic was already
 // correct and tested there.
 export type Phase = 'lobby' | 'reveal' | 'playing' | 'finished';

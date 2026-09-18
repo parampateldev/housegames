@@ -55,7 +55,7 @@ describe('remainingForTeam / checkWordsExhaustedWinner', () => {
 });
 
 describe('codenamesWinnerOnAssassinTap', () => {
-  it('the team that tapped the assassin loses — the other team wins', () => {
+  it('the team that tapped the assassin loses, the other team wins', () => {
     expect(codenamesWinnerOnAssassinTap('red')).toBe('blue');
     expect(codenamesWinnerOnAssassinTap('blue')).toBe('red');
   });

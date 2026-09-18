@@ -114,7 +114,7 @@ function SHApp({ uid, name }: { uid: string; name: string }) {
         <section className="hero">
           <div className="hg-eyebrow">Elect governments. Enact policy. Trust no one.</div>
           <h1 className="hg-headline">Secret<br /><em>Hitler.</em></h1>
-          <p className="hg-lead">Liberals and fascists share the table. One fascist is secretly Hitler. 5–10 players.</p>
+          <p className="hg-lead">Liberals and fascists share the table. One fascist is secretly Hitler. 5-10 players.</p>
           <div className="actions">
             <Button onClick={host}>Host a game</Button>
             <Button ghost onClick={() => setScreen('joinForm')}>Join with code</Button>
@@ -176,7 +176,7 @@ function SHApp({ uid, name }: { uid: string; name: string }) {
             <Button wide disabled={players.length < 5 || players.length > 10} onClick={() => startGame(code, uid).catch(fail)} style={{ marginTop: 18 }}>
               {players.length < 5 ? `Need ${5 - players.length} more` : players.length > 10 ? 'Too many players (max 10)' : 'Start game'}
             </Button>
-          ) : <p className="hg-note">Waiting for the host to start ({players.length}/5–10 players)…</p>}
+          ) : <p className="hg-note">Waiting for the host to start ({players.length}/5-10 players)…</p>}
           <ErrorText>{error}</ErrorText>
         </Card>
       </main>

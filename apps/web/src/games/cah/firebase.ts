@@ -8,7 +8,7 @@ import { shuffle, drawCards, dealHands, nextCzar, anonymizeSubmissions } from '.
 import { BLACK_CARDS, WHITE_CARDS } from './cards';
 
 const NS = 'cah';
-const DECK_KEY = '_deck'; // host-only fixed key, same trick as Secret Hitler's deck — survives host migration
+const DECK_KEY = '_deck'; // host-only fixed key, same trick as Secret Hitler's deck, survives host migration
 
 export type CAHPlayer = BasePlayer & { score: number };
 export type CAHPhase = 'lobby' | 'submitting' | 'judging' | 'roundResult' | 'gameOver';
@@ -73,7 +73,7 @@ export async function startCAHGame(code: string, hostId: string) {
   await setPhase(NS, code, hostId, 'submitting');
 }
 
-/** A non-czar player submits one card from their hand (by index) — self-write to their own secret. */
+/** A non-czar player submits one card from their hand (by index), self-write to their own secret. */
 export async function submitCard(code: string, uid: string, hand: string[], cardIndex: number) {
   await setSecret<CAHHandSecret>(NS, code, uid, { hand, submission: hand[cardIndex] });
 }
@@ -91,7 +91,7 @@ export async function beginJudging(code: string, hostId: string) {
   await setPhase(NS, code, hostId, 'judging');
 }
 
-/** The czar picks a winning index — self-write, host resolves it. */
+/** The czar picks a winning index, self-write, host resolves it. */
 export async function pickWinner(code: string, uid: string, chosenIndex: number) {
   await set(ref(requireDb(), `${NS}/rooms/${code}/votes/${uid}`), String(chosenIndex));
 }
