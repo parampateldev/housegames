@@ -261,7 +261,7 @@ function CAHApp({ uid, name }: { uid: string; name: string }) {
             <p className="hg-note">"{room.settings.lastWinner?.card}"</p>
             <details style={{ margin: '10px 0' }}>
               <summary>Who played what</summary>
-              {room.settings.reveals.map((r) => <div key={r.uid} className="hg-note">{r.name}: {r.card}</div>)}
+              {(room.settings.reveals ?? []).map((r) => <div key={r.uid} className="hg-note">{r.name}: {r.card}</div>)}
             </details>
             {isHost && <Button onClick={() => nextRound(code, uid).catch(fail)}>Next round</Button>}
           </Card>
