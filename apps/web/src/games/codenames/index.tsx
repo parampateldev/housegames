@@ -173,17 +173,43 @@ function CNApp({ uid, name }: { uid: string; name: string }) {
           <div className="team-pick">
             <div className="team-card red">
               <h3>Red ({redTeam.length})</h3>
-              {redTeam.map((p) => <div key={p.id}>{p.name}{p.spymaster ? ' 🕵️' : ''}</div>)}
+              {redTeam.map((p) => (
+                <div key={p.id}>
+                  {p.name}{p.spymaster ? ' 🕵️' : ''}
+                  {isHost && !p.spymaster && !room.settings.redSpymaster && (
+                    <button className="mini" style={{ marginLeft: 8 }} onClick={() => becomeSpymaster(code, room.hostId, p.id, 'red').catch(fail)}>Make spymaster</button>
+                  )}
+                </div>
+              ))}
               <Button small onClick={() => joinTeam(code, uid, 'red').catch(fail)} style={{ marginTop: 10 }}>Join Red</Button>
               {!room.settings.redSpymaster && me?.team === 'red' && <Button small ghost onClick={() => becomeSpymaster(code, room.hostId, uid, 'red').catch(fail)} style={{ marginTop: 6 }}>Be Spymaster</Button>}
             </div>
             <div className="team-card blue">
               <h3>Blue ({blueTeam.length})</h3>
-              {blueTeam.map((p) => <div key={p.id}>{p.name}{p.spymaster ? ' 🕵️' : ''}</div>)}
+              {blueTeam.map((p) => (
+                <div key={p.id}>
+                  {p.name}{p.spymaster ? ' 🕵️' : ''}
+                  {isHost && !p.spymaster && !room.settings.blueSpymaster && (
+                    <button className="mini" style={{ marginLeft: 8 }} onClick={() => becomeSpymaster(code, room.hostId, p.id, 'blue').catch(fail)}>Make spymaster</button>
+                  )}
+                </div>
+              ))}
               <Button small onClick={() => joinTeam(code, uid, 'blue').catch(fail)} style={{ marginTop: 10 }}>Join Blue</Button>
               {!room.settings.blueSpymaster && me?.team === 'blue' && <Button small ghost onClick={() => becomeSpymaster(code, room.hostId, uid, 'blue').catch(fail)} style={{ marginTop: 6 }}>Be Spymaster</Button>}
             </div>
           </div>
+          {isHost && players.some((p) => !p.team && p.id.startsWith('local-')) && (
+            <div style={{ marginTop: 14 }}>
+              <p className="hg-note">Assign players without a phone to a team:</p>
+              {players.filter((p) => !p.team && p.id.startsWith('local-')).map((p) => (
+                <div key={p.id} className="hg-row" style={{ marginTop: 6 }}>
+                  <span>{p.name}</span>
+                  <button className="mini" onClick={() => joinTeam(code, p.id, 'red').catch(fail)}>Add to Red</button>
+                  <button className="mini" onClick={() => joinTeam(code, p.id, 'blue').catch(fail)}>Add to Blue</button>
+                </div>
+              ))}
+            </div>
+          )}
           {isHost && (
             <Button wide disabled={!room.settings.redSpymaster || !room.settings.blueSpymaster || players.length < 4} onClick={() => startCNGame(code, uid).catch(fail)}>
               Start game
