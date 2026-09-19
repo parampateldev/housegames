@@ -3,6 +3,19 @@
 Tracking the mid-build requests that came in after the initial 12-game platform
 was deployed, so nothing gets dropped under time pressure. Newest at top.
 
+## Empire: "still not able to edit the empire map"
+The undo bar only reaches the single most recent capture, and only for
+one made after that feature shipped, so it couldn't touch mistakes
+already baked into an in-progress game (the exact case the user hit:
+several existing captures, made before this code existed, that they now
+wanted to fix). Added a general "Fix a mistake on the map" host panel,
+independent of capture history entirely: pick any player, set them
+Independent or Captured by any other current leader, Apply fix. Works
+regardless of how many captures deep the mistake is, and correctly
+reopens a game a mistaken capture had won. Live-reproduced a 3-captures-deep
+scenario and fixed the 2nd one, confirming the 1st and 3rd captures were
+left untouched and the game correctly returned to "playing".
+
 ## Empire: live map cut off, and no way to fix a mis-recorded capture
 - [x] **Map cut off, needed to scroll**: `.empire-map` was constrained to
       the page's 1100px reading-width column like everything else, so on a

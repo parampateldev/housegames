@@ -52,6 +52,43 @@ export function undoCapture(players: Record<string, Player>, record: CaptureReco
   return next;
 }
 
+/**
+ * General-purpose correction, independent of capture()/undoCapture()'s
+ * history: sets any player's status directly, to fix a mistake made at
+ * any point in the game, not just the most recent capture. Pass
+ * newLeaderId: null to free them back to being their own independent
+ * leader, or another player's id to mark them captured under that leader.
+ * Consistent regardless of how deep in the game's history the mistake was:
+ * a player is always either a leader with a flat members list, or a
+ * captured player with an empty one (capture() already flattens a whole
+ * subtree onto its new top leader), so there's never nested state to
+ * untangle.
+ */
+export function setPlayerStatus(players: Record<string, Player>, playerId: string, newLeaderId: string | null): Record<string, Player> {
+  const next = structuredClone(players);
+  const player = next[playerId];
+  if (!player) throw new Error('That player is gone');
+  if (newLeaderId === playerId) throw new Error('Choose another empire');
+
+  const oldLeaderId = player.leaderId;
+  if (oldLeaderId && oldLeaderId !== playerId && next[oldLeaderId]) {
+    next[oldLeaderId].members = (next[oldLeaderId].members || []).filter((id) => id !== playerId);
+  }
+
+  if (newLeaderId === null) {
+    player.eliminated = false;
+    player.leaderId = playerId;
+  } else {
+    const newLeader = next[newLeaderId];
+    if (!newLeader) throw new Error('That leader is gone');
+    player.eliminated = true;
+    player.leaderId = newLeaderId;
+    player.members = [];
+    newLeader.members = [...new Set([...(newLeader.members || []), playerId])];
+  }
+  return next;
+}
+
 export function winner(players: Record<string, Player>): Player | null {
   const alive = Object.values(players).filter((p) => !p.eliminated);
   return alive.length === 1 && Object.keys(players).length > 1 ? alive[0] : null;
