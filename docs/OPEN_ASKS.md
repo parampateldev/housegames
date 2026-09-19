@@ -3,6 +3,33 @@
 Tracking the mid-build requests that came in after the initial 12-game platform
 was deployed, so nothing gets dropped under time pressure. Newest at top.
 
+## Empire: live map cut off, and no way to fix a mis-recorded capture
+- [x] **Map cut off, needed to scroll**: `.empire-map` was constrained to
+      the page's 1100px reading-width column like everything else, so on a
+      real live game with several leaders the grove of cards overflowed and
+      required horizontal scrolling. Made the map break out to the full
+      viewport width on screens wide enough for it to matter
+      (`@media (min-width: 900px)`, a full-bleed `width:100vw` +
+      `transform: translateX(-50%)`), gated so nothing changes below that
+      width and the existing mobile-specific bleed is untouched. The
+      grove's cards already flex-grow to fill whatever width they get, and
+      still fall back to horizontal scroll if a game has more leaders than
+      even the full width fits, so this can only ever show more, never less.
+- [x] **No way to undo a mis-recorded capture**: added `recordCapture` and
+      `undoCapture` (snapshots the target's members before a capture so the
+      exact prior state, not just "not eliminated," can be restored, even
+      if the target had already absorbed members of its own). The host
+      gets a "Last: X captured Y / Undo that" bar after every capture, and
+      undoing correctly reopens a game that a mistaken capture had just
+      ended.
+- [x] Live-reproduced the whole flow (host + 5 local players, real
+      captures, real undo) against the actual local Firebase project and
+      caught a real bug doing it: Firebase drops an empty array on write,
+      so undoing a capture of a player who had zero members of their own
+      read back `targetMembersBefore` as `undefined`, not `[]`, and threw.
+      Fixed with the same defensive-guard pattern used for this exact bug
+      class earlier (Mafia/Werewolf/CAH), with a regression test.
+
 ## Host display name: "Host" instead of the name I typed
 - [x] **Root cause**: `ensureProfile` is create-once (skips writing if a
       profile already exists). On email sign-up, `onAuthStateChanged` fires

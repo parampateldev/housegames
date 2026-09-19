@@ -11,7 +11,7 @@ import {
   beginReveal, hideReveal, watchReveal, savePlayers, saveTheme, saveTimerOff,
   leaveEmpireRoom, kickPlayer, type EmpireRoom, type Reveal,
 } from './firebase';
-import { mk, capture, winner, remainingMs, type Player } from './game';
+import { mk, capture, recordCapture, undoCapture, winner, remainingMs, type Player, type CaptureRecord } from './game';
 import './empire.css';
 
 const CODE_LENGTH = 6;
@@ -151,9 +151,20 @@ function EmpireApp({ uid, name }: { uid: string; name: string }) {
     if (!room) return;
     setError('');
     try {
-      const players = capture(room.players || {}, a, b);
+      const before = room.players || {};
+      const record = recordCapture(a, b, before);
+      const players = capture(before, a, b);
       const win = winner(players);
-      await savePlayers(code, uid, players, win ? 'finished' : undefined);
+      await savePlayers(code, uid, players, win ? 'finished' : undefined, record);
+    } catch (e) { fail(e); }
+  }
+
+  async function doUndoCapture() {
+    if (!room?.settings?.lastCapture) return;
+    setError('');
+    try {
+      const players = undoCapture(room.players || {}, room.settings.lastCapture);
+      await savePlayers(code, uid, players, 'playing', null);
     } catch (e) { fail(e); }
   }
 
@@ -324,7 +335,9 @@ function EmpireApp({ uid, name }: { uid: string; name: string }) {
           code={code}
           words={words}
           timerOff={Boolean(room.settings?.timerOff)}
+          lastCapture={room.settings?.lastCapture ?? null}
           onCapture={doCapture}
+          onUndoCapture={doUndoCapture}
           onRevealAgain={start}
           onToggleTimer={toggleTimer}
         />
@@ -415,7 +428,7 @@ function EmpireApp({ uid, name }: { uid: string; name: string }) {
 }
 
 function Board({
-  players, alive, win, isHost, code, words, timerOff, onCapture, onRevealAgain, onToggleTimer,
+  players, alive, win, isHost, code, words, timerOff, lastCapture, onCapture, onUndoCapture, onRevealAgain, onToggleTimer,
 }: {
   players: Record<string, Player>;
   alive: Player[];
@@ -424,7 +437,9 @@ function Board({
   code: string;
   words: Record<string, { word: string }>;
   timerOff: boolean;
+  lastCapture: CaptureRecord | null;
   onCapture: (a: string, b: string) => void;
+  onUndoCapture: () => void;
   onRevealAgain: () => void;
   onToggleTimer: () => void;
 }) {
@@ -450,6 +465,12 @@ function Board({
           <span>captured</span>
           <select value={b} onChange={(e) => setB(e.target.value)}>{alive.map((p) => <option key={p.id} value={p.id}>{words[p.id]?.word || p.name}</option>)}</select>
           <Button disabled={!a || !b || a === b} onClick={() => onCapture(a, b)}>Record</Button>
+        </div>
+      )}
+      {isHost && lastCapture && (
+        <div className="undo-capture">
+          <span>Last: {players[lastCapture.attackerId]?.name || 'Someone'} captured {players[lastCapture.targetId]?.name || 'someone'}</span>
+          <Button ghost small onClick={onUndoCapture}>Undo that</Button>
         </div>
       )}
       {isHost && !win && <Button ghost className="reveal-again" onClick={onRevealAgain}>Reveal the list again</Button>}

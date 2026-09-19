@@ -61,6 +61,7 @@
 .eg .capture { display: flex; gap: 10px; align-items: center; background: var(--hg-ink); color: #fff; padding: 18px; border-radius: 12px; flex-wrap: wrap; }
 .eg .capture select { flex: 1; min-width: 120px; padding: 13px; background: #302722; color: #fff; border: 1px solid #665950; border-radius: 8px; }
 .eg .capture .hg-btn { background: var(--hg-rust); }
+.eg .undo-capture { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 10px; padding: 10px 14px; background: rgba(75,50,36,.08); border-radius: 10px; font-size: 13px; flex-wrap: wrap; }
 .eg .reveal-again { margin-top: 14px; }
 .eg .board-timer { display: block; margin-top: 12px; }
 .eg .toggle-timer { width: auto; padding: 8px 22px; font-size: 13px; background: #a99b8e; border: 0; border-radius: 999px; color: #fff; cursor: pointer; }
@@ -77,6 +78,16 @@
 
 /* Live empire map */
 .eg .empire-map { margin: 24px 0; padding: 22px; border: 1px solid rgba(75,50,36,.14); border-radius: 24px; background: linear-gradient(145deg,rgba(255,252,245,.96),rgba(245,232,211,.72)); box-shadow: 0 16px 45px rgba(72,43,25,.08); overflow: hidden; }
+/* The map is the one part of this screen worth more than the page's
+   1100px reading-width column, so it breaks out to the full viewport
+   width on screens wide enough for that to matter. The grove's cards
+   already flex-grow to fill whatever width they're given, and still
+   fall back to horizontal scroll if a game somehow has more leaders
+   than even the full width fits, so this can never cut anything off
+   worse than before. */
+@media (min-width: 900px) {
+  .eg .empire-map { width: 100vw; margin-left: 50%; transform: translateX(-50%); }
+}
 .eg .map-heading { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 5px; }
 .eg .map-heading h3 { margin: 0; font-family: var(--hg-font-display); font-style: italic; font-size: clamp(1.55rem,4vw,2.05rem); font-weight: 500; }
 .eg .map-kicker { margin: 0 0 3px; color: var(--hg-rust); font-size: .7rem; font-weight: 800; letter-spacing: .16em; text-transform: uppercase; }

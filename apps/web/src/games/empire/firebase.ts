@@ -6,11 +6,11 @@ import {
   type BaseRoom,
 } from '@fb/index';
 import { get, ref } from 'firebase/database';
-import type { Player } from './game';
+import type { Player, CaptureRecord } from './game';
 
 const NS = 'empire';
 
-export type EmpireSettings = { category: string; revealSeconds: number; timerOff: boolean };
+export type EmpireSettings = { category: string; revealSeconds: number; timerOff: boolean; lastCapture?: CaptureRecord | null };
 export type EmpireRoom = BaseRoom<EmpireSettings, Player>;
 export type Reveal = { words: string[]; endsAt: number };
 
@@ -63,12 +63,17 @@ export function watchReveal(code: string, cb: (r: Reveal | null) => void, onCanc
   return watchHostReveal<Reveal>(NS, code, cb, onCancel);
 }
 
-export async function savePlayers(code: string, hostId: string, players: Record<string, Player>, phase?: 'playing' | 'finished') {
+export async function savePlayers(
+  code: string, hostId: string, players: Record<string, Player>, phase?: 'playing' | 'finished', lastCapture?: CaptureRecord | null,
+) {
   const database = requireDb();
   const snap = await get(ref(database, `${NS}/rooms/${code}`));
   const room = snap.val() as EmpireRoom | null;
   if (room?.hostId !== hostId) throw new Error('Only the host can update the board');
   await Promise.all(Object.values(players).map((p) => updatePlayer<Player>(NS, code, p.id, p)));
+  if (lastCapture !== undefined) {
+    await saveSettings<EmpireSettings>(NS, code, hostId, { ...(room?.settings ?? { category: '', revealSeconds: 30, timerOff: false }), lastCapture });
+  }
   if (phase) await setPhase(NS, code, hostId, phase);
 }
 
