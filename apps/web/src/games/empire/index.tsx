@@ -11,7 +11,7 @@ import {
   beginReveal, hideReveal, watchReveal, savePlayers, saveTheme, saveTimerOff,
   leaveEmpireRoom, kickPlayer, type EmpireRoom, type Reveal,
 } from './firebase';
-import { mk, capture, recordCapture, undoCapture, winner, remainingMs, type Player, type CaptureRecord } from './game';
+import { mk, capture, recordCapture, undoCapture, setPlayerStatus, winner, remainingMs, type Player, type CaptureRecord } from './game';
 import './empire.css';
 
 const CODE_LENGTH = 6;
@@ -165,6 +165,17 @@ function EmpireApp({ uid, name }: { uid: string; name: string }) {
     try {
       const players = undoCapture(room.players || {}, room.settings.lastCapture);
       await savePlayers(code, uid, players, 'playing', null);
+    } catch (e) { fail(e); }
+  }
+
+  /** General correction, not limited to the most recent capture, for fixing a mistake made at any earlier point in the game. */
+  async function doFixStatus(playerId: string, newLeaderId: string | null) {
+    if (!room) return;
+    setError('');
+    try {
+      const players = setPlayerStatus(room.players || {}, playerId, newLeaderId);
+      const win = winner(players);
+      await savePlayers(code, uid, players, win ? 'finished' : 'playing', null);
     } catch (e) { fail(e); }
   }
 
@@ -338,6 +349,7 @@ function EmpireApp({ uid, name }: { uid: string; name: string }) {
           lastCapture={room.settings?.lastCapture ?? null}
           onCapture={doCapture}
           onUndoCapture={doUndoCapture}
+          onFixStatus={doFixStatus}
           onRevealAgain={start}
           onToggleTimer={toggleTimer}
         />
@@ -427,8 +439,29 @@ function EmpireApp({ uid, name }: { uid: string; name: string }) {
   );
 }
 
+/** General correction tool: fixes any player's status regardless of how long ago the mistake happened, unlike the one-step "undo last capture" above it. */
+function FixStatusPanel({ players, onFixStatus }: { players: Record<string, Player>; onFixStatus: (playerId: string, newLeaderId: string | null) => void }) {
+  const all = Object.values(players).filter((p) => p && p.id && p.name);
+  const [playerId, setPlayerId] = useState(all[0]?.id || '');
+  const [target, setTarget] = useState('independent');
+  const leaders = all.filter((p) => !p.eliminated && p.id !== playerId);
+  return (
+    <div className="fix-status">
+      <select value={playerId} onChange={(e) => { setPlayerId(e.target.value); setTarget('independent'); }}>
+        {all.map((p) => <option key={p.id} value={p.id}>{p.name} ({p.eliminated ? 'captured' : 'leader'})</option>)}
+      </select>
+      <span>should be</span>
+      <select value={target} onChange={(e) => setTarget(e.target.value)}>
+        <option value="independent">Independent leader</option>
+        {leaders.map((p) => <option key={p.id} value={p.id}>Captured by {p.name}</option>)}
+      </select>
+      <Button small onClick={() => onFixStatus(playerId, target === 'independent' ? null : target)}>Apply fix</Button>
+    </div>
+  );
+}
+
 function Board({
-  players, alive, win, isHost, code, words, timerOff, lastCapture, onCapture, onUndoCapture, onRevealAgain, onToggleTimer,
+  players, alive, win, isHost, code, words, timerOff, lastCapture, onCapture, onUndoCapture, onFixStatus, onRevealAgain, onToggleTimer,
 }: {
   players: Record<string, Player>;
   alive: Player[];
@@ -440,6 +473,7 @@ function Board({
   lastCapture: CaptureRecord | null;
   onCapture: (a: string, b: string) => void;
   onUndoCapture: () => void;
+  onFixStatus: (playerId: string, newLeaderId: string | null) => void;
   onRevealAgain: () => void;
   onToggleTimer: () => void;
 }) {
@@ -472,6 +506,13 @@ function Board({
           <span>Last: {players[lastCapture.attackerId]?.name || 'Someone'} captured {players[lastCapture.targetId]?.name || 'someone'}</span>
           <Button ghost small onClick={onUndoCapture}>Undo that</Button>
         </div>
+      )}
+      {isHost && (
+        <details className="identity-key">
+          <summary>Fix a mistake on the map</summary>
+          <p className="hg-note" style={{ marginTop: 10 }}>Made an error earlier in the game, not just the last capture? Set anyone's status directly.</p>
+          <FixStatusPanel players={players} onFixStatus={onFixStatus} />
+        </details>
       )}
       {isHost && !win && <Button ghost className="reveal-again" onClick={onRevealAgain}>Reveal the list again</Button>}
       {isHost && <button className="toggle-timer board-timer" onClick={onToggleTimer}>Reveal timer: {timerOff ? 'off' : 'on'}</button>}

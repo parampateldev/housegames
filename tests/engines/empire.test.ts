@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { mk, capture, recordCapture, undoCapture, winner } from '../../apps/web/src/games/empire/game';
+import { mk, capture, recordCapture, undoCapture, setPlayerStatus, winner } from '../../apps/web/src/games/empire/game';
 
 describe('undoCapture, reversing a host mis-click', () => {
   it('restores a simple one-on-one capture exactly', () => {
@@ -62,5 +62,47 @@ describe('undoCapture, reversing a host mis-click', () => {
     const captured = capture(players, 'a', 'b');
     delete (captured as Record<string, unknown>).b;
     expect(() => undoCapture(captured, record)).toThrow();
+  });
+});
+
+describe('setPlayerStatus, the general fix for a mistake made at any point in the game', () => {
+  it('frees a captured player back to being their own independent leader', () => {
+    const players = { a: mk('a', 'Alice'), b: mk('b', 'Bob') };
+    const captured = capture(players, 'a', 'b');
+    const fixed = setPlayerStatus(captured, 'b', null);
+    expect(fixed).toEqual(players);
+  });
+
+  it('reassigns a captured player to a DIFFERENT leader than whoever actually captured them', () => {
+    const players = { a: mk('a', 'Alice'), b: mk('b', 'Bob'), c: mk('c', 'Carol') };
+    const wrongCapture = capture(players, 'a', 'c'); // host meant to say Carol was captured by Bob
+    const fixed = setPlayerStatus(wrongCapture, 'c', 'b');
+    expect(fixed.a.members).toEqual([]);
+    expect(fixed.b.members).toEqual(['c']);
+    expect(fixed.c.eliminated).toBe(true);
+    expect(fixed.c.leaderId).toBe('b');
+  });
+
+  it('works on a mistake made several captures ago, well past the single-step undo history', () => {
+    let players: Record<string, ReturnType<typeof mk>> = { a: mk('a', 'Alice'), b: mk('b', 'Bob'), c: mk('c', 'Carol'), d: mk('d', 'Dana') };
+    players = capture(players, 'a', 'b'); // this one was wrong, discovered much later
+    players = capture(players, 'a', 'c');
+    players = capture(players, 'a', 'd'); // by now, undoing only the last capture can't reach Bob's mistake
+    const fixed = setPlayerStatus(players, 'b', null);
+    expect(fixed.b.eliminated).toBe(false);
+    expect(fixed.a.members.sort()).toEqual(['c', 'd']);
+  });
+
+  it('correctly reopens a game a mistaken capture had just won', () => {
+    const players = { a: mk('a', 'Alice'), b: mk('b', 'Bob') };
+    const captured = capture(players, 'a', 'b');
+    expect(winner(captured)?.id).toBe('a');
+    const fixed = setPlayerStatus(captured, 'b', null);
+    expect(winner(fixed)).toBeNull();
+  });
+
+  it('rejects assigning a player as their own captor', () => {
+    const players = { a: mk('a', 'Alice'), b: mk('b', 'Bob') };
+    expect(() => setPlayerStatus(players, 'a', 'a')).toThrow();
   });
 });

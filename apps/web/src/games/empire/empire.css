@@ -62,6 +62,8 @@
 .eg .capture select { flex: 1; min-width: 120px; padding: 13px; background: #302722; color: #fff; border: 1px solid #665950; border-radius: 8px; }
 .eg .capture .hg-btn { background: var(--hg-rust); }
 .eg .undo-capture { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 10px; padding: 10px 14px; background: rgba(75,50,36,.08); border-radius: 10px; font-size: 13px; flex-wrap: wrap; }
+.eg .fix-status { display: flex; align-items: center; gap: 10px; margin-top: 12px; flex-wrap: wrap; }
+.eg .fix-status select { flex: 1; min-width: 160px; padding: 10px; border: 1px solid var(--hg-border-strong); background: #fff; border-radius: 6px; font-size: 14px; }
 .eg .reveal-again { margin-top: 14px; }
 .eg .board-timer { display: block; margin-top: 12px; }
 .eg .toggle-timer { width: auto; padding: 8px 22px; font-size: 13px; background: #a99b8e; border: 0; border-radius: 999px; color: #fff; cursor: pointer; }
