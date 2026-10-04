@@ -80,7 +80,7 @@ export function Home() {
               <p className="hg-game-card-desc">{g.tagline}</p>
               <div className="hg-game-card-footer">
                 <span className="hg-tag-chip">{g.minPlayers}+ players</span>
-                <span className="hg-action-link">Play →</span>
+                <span className="hg-action-link">Play  to </span>
               </div>
             </Link>
           ))}

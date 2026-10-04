@@ -148,7 +148,7 @@ function App({ uid, name }: { uid: string; name: string }) {
     );
   }
 
-  if (!room) return <main>{Header}<div className="center">Joining {code}…</div><ErrorText>{error}</ErrorText></main>;
+  if (!room) return <main>{Header}<div className="center">Joining {code}...</div><ErrorText>{error}</ErrorText></main>;
 
   if (!room.players?.[uid]) {
     return (
@@ -240,7 +240,7 @@ function App({ uid, name }: { uid: string; name: string }) {
     <main>{Header}
       <section className="center">
         <div className="hg-eyebrow">Round over</div>
-        <h2 style={{ fontFamily: 'var(--hg-font-display)', fontStyle: 'italic' }}>{revealed ? `The location was ${revealed.location}` : 'Resolving…'}</h2>
+        <h2 style={{ fontFamily: 'var(--hg-font-display)', fontStyle: 'italic' }}>{revealed ? `The location was ${revealed.location}` : 'Resolving...'}</h2>
         {revealed && <p className="hg-note">The spy was {players.find((p) => p.id === revealed.spyId)?.name ?? 'unknown'}.</p>}
         {isHost && <Button onClick={() => advancePhase(code, uid, 'lobby')} style={{ marginTop: 16 }}>Back to lobby</Button>}
         <Button ghost onClick={leave} style={{ marginTop: 10 }}>Leave room</Button>

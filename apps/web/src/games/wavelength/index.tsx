@@ -167,7 +167,7 @@ function App({ uid, name }: { uid: string; name: string }) {
     );
   }
 
-  if (!room) return <main>{Header}<div className="center">Joining {code}…</div><ErrorText>{error}</ErrorText></main>;
+  if (!room) return <main>{Header}<div className="center">Joining {code}...</div><ErrorText>{error}</ErrorText></main>;
 
   if (!room.players?.[uid]) {
     return (
@@ -232,7 +232,7 @@ function App({ uid, name }: { uid: string; name: string }) {
                 <Field label="Your clue"><TextInput value={clueDraft} onChange={(e) => setClueDraft(e.target.value)} /></Field>
                 <Button wide onClick={sendClue} style={{ marginTop: 12 }}>Lock in clue</Button>
               </>
-            ) : <p className="hg-note">Waiting for your team to guess…</p>
+            ) : <p className="hg-note">Waiting for your team to guess...</p>
           ) : psychicIsLocal ? (
             room.phase === 'psychicSees' ? (
               <>
@@ -240,11 +240,11 @@ function App({ uid, name }: { uid: string; name: string }) {
                 <Field label="Their clue"><TextInput value={clueDraft} onChange={(e) => setClueDraft(e.target.value)} /></Field>
                 <Button wide onClick={sendClue} style={{ marginTop: 12 }}>Lock in clue</Button>
               </>
-            ) : <p className="hg-note">Waiting for the team to guess…</p>
+            ) : <p className="hg-note">Waiting for the team to guess...</p>
           ) : (
             room.phase === 'clueGiven'
               ? <p className="hg-note">Clue: <b>{s?.clue}</b>, your team is guessing.</p>
-              : <p className="hg-note">The psychic is thinking of a clue…</p>
+              : <p className="hg-note">The psychic is thinking of a clue...</p>
           )}
           <ErrorText>{error}</ErrorText>
         </section>
@@ -264,7 +264,7 @@ function App({ uid, name }: { uid: string; name: string }) {
               <div className="dial"><input type="range" min={0} max={100} value={guess} onChange={(e) => setGuess(+e.target.value)} /></div>
               <Button wide onClick={sendGuess}>Lock in guess ({guess})</Button>
             </>
-          ) : <p className="hg-note">Waiting on the guessing team…</p>}
+          ) : <p className="hg-note">Waiting on the guessing team...</p>}
           <ErrorText>{error}</ErrorText>
         </section>
       </main>
@@ -279,7 +279,7 @@ function App({ uid, name }: { uid: string; name: string }) {
           <p className="hg-note">Team {s?.team} guessed {s?.teamGuess}. Was the real target left or right of that?</p>
           {onOtherTeam ? (
             <div className="actions"><Button onClick={() => sendCall('left')}>Left</Button><Button onClick={() => sendCall('right')}>Right</Button></div>
-          ) : <p className="hg-note">Waiting on the other team's call…</p>}
+          ) : <p className="hg-note">Waiting on the other team's call...</p>}
           <ErrorText>{error}</ErrorText>
         </section>
       </main>
@@ -295,7 +295,7 @@ function App({ uid, name }: { uid: string; name: string }) {
           {revealedTarget !== null && <div className="marker target" style={{ left: `${revealedTarget}%` }} />}
           {s?.teamGuess !== undefined && <div className="marker guess" style={{ left: `${s.teamGuess}%` }} />}
         </div>
-        <p className="hg-note">Target was {revealedTarget ?? '…'}, team guessed {s?.teamGuess}.</p>
+        <p className="hg-note">Target was {revealedTarget ?? '...'}, team guessed {s?.teamGuess}.</p>
         {isHost && <Button onClick={finish} style={{ marginTop: 16 }}>Next round</Button>}
         <Button ghost onClick={leave} style={{ marginTop: 10 }}>Leave room</Button>
       </section>

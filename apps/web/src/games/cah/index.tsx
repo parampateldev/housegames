@@ -164,7 +164,7 @@ function CAHApp({ uid, name }: { uid: string; name: string }) {
     );
   }
 
-  if (!room) return <main>{Header}<div className="loader">Joining {code}…</div><ErrorText>{error}</ErrorText></main>;
+  if (!room) return <main>{Header}<div className="loader">Joining {code}...</div><ErrorText>{error}</ErrorText></main>;
 
   if (!room.players?.[uid]) {
     return (
@@ -199,7 +199,7 @@ function CAHApp({ uid, name }: { uid: string; name: string }) {
             <Button wide disabled={players.length < 3} onClick={() => startCAHGame(code, uid).catch(fail)} style={{ marginTop: 12 }}>
               {players.length < 3 ? `Need ${3 - players.length} more` : 'Start game'}
             </Button>
-          ) : <p className="hg-note">Waiting for the host to start (3+ players)…</p>}
+          ) : <p className="hg-note">Waiting for the host to start (3+ players)...</p>}
           <ErrorText>{error}</ErrorText>
         </Card>
       </main>
@@ -218,7 +218,7 @@ function CAHApp({ uid, name }: { uid: string; name: string }) {
         {room.phase === 'submitting' && (
           <>
             {isCzar ? <p className="hg-note">You're the Czar this round, sit tight while everyone picks a card.</p> :
-            iSubmitted ? <p className="hg-note">Card submitted. Waiting on others…</p> : (
+            iSubmitted ? <p className="hg-note">Card submitted. Waiting on others...</p> : (
               <div className="hand">
                 {hand?.hand.map((card, i) => (
                   <button key={i} className="white-card" onClick={() => pickCard(i)}>{card}</button>
@@ -252,7 +252,7 @@ function CAHApp({ uid, name }: { uid: string; name: string }) {
                 <button key={i} className="white-card" onClick={() => pickWinner(code, room.settings.czarId!, i).catch(fail)}>{card}</button>
               ))}
             </div>
-          ) : <p className="hg-note">{czar?.name} is judging…</p>
+          ) : <p className="hg-note">{czar?.name} is judging...</p>
         )}
 
         {room.phase === 'roundResult' && (

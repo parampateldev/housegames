@@ -135,7 +135,7 @@ function CNApp({ uid, name }: { uid: string; name: string }) {
     );
   }
 
-  if (!room) return <main>{Header}<div className="loader">Joining {code}…</div><ErrorText>{error}</ErrorText></main>;
+  if (!room) return <main>{Header}<div className="loader">Joining {code}...</div><ErrorText>{error}</ErrorText></main>;
 
   if (!room.players?.[uid]) {
     return (

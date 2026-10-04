@@ -197,7 +197,7 @@ function PictionaryApp({ uid, name }: { uid: string; name: string }) {
   }
 
   if (!room) {
-    return <main><div className="loader">Joining {code}…</div><ErrorText>{error}</ErrorText></main>;
+    return <main><div className="loader">Joining {code}...</div><ErrorText>{error}</ErrorText></main>;
   }
 
   if (!room.players?.[uid]) {

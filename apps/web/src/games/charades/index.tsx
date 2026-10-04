@@ -149,7 +149,7 @@ function App({ uid, name }: { uid: string; name: string }) {
     );
   }
 
-  if (!room) return <main>{Header}<div className="center">Joining {code}…</div><ErrorText>{error}</ErrorText></main>;
+  if (!room) return <main>{Header}<div className="center">Joining {code}...</div><ErrorText>{error}</ErrorText></main>;
 
   if (!room.players?.[uid]) {
     return (
@@ -196,7 +196,7 @@ function App({ uid, name }: { uid: string; name: string }) {
       <main>{Header}
         <section className="center">
           <div className="hg-eyebrow">{s?.category}</div>
-          {isActor && <div className="word-card">{word ?? '…'}</div>}
+          {isActor && <div className="word-card">{word ?? '...'}</div>}
           {!isActor && isHost && actorHasNoDevice && localActorWord && (
             <p className="hg-lead">{room.players?.[actorId]?.name}'s word (they have no device): <b>{localActorWord}</b></p>
           )}

@@ -269,7 +269,7 @@ function LocalGame({ onExit }: { onExit: () => void }) {
           <p className={'verdict ' + cls}>{verdict}</p>
           <p className="hg-lead" style={{ margin: '8px auto' }}>
             {L.outcome === 'crew' && `${accused?.name ?? ''} was caught${L.guess ? ` and guessed "${L.guess}", wrong.` : '.'}`}
-            {L.outcome === 'steal' && `${accused?.name ?? ''} was caught… then guessed the word. Brutal.`}
+            {L.outcome === 'steal' && `${accused?.name ?? ''} was caught... then guessed the word. Brutal.`}
             {L.outcome === 'imposter' && `${accused?.name ?? ''} was innocent.`}
           </p>
           <div className="panel">
@@ -447,7 +447,7 @@ function OnlineGame({ uid, name, onExit }: { uid: string; name: string; onExit: 
   }
 
   if (!room) {
-    return <main><Header onHome={onExit} /><div className="loader">Joining {code}…</div><ErrorText>{error}</ErrorText></main>;
+    return <main><Header onHome={onExit} /><div className="loader">Joining {code}...</div><ErrorText>{error}</ErrorText></main>;
   }
 
   if (!room.players?.[uid]) {
@@ -514,7 +514,7 @@ function OnlineGame({ uid, name, onExit }: { uid: string; name: string; onExit: 
               <span>{players.length < 3 ? `Need ${3 - players.length} more player${3 - players.length > 1 ? 's' : ''}` : 'Ready when you are'}</span>
               <Button disabled={players.length < 3} onClick={hostStartRound}>Start round</Button>
             </div>
-          ) : <p className="hg-note" style={{ textAlign: 'center', marginTop: 24 }}>Waiting for the host to start…</p>}
+          ) : <p className="hg-note" style={{ textAlign: 'center', marginTop: 24 }}>Waiting for the host to start...</p>}
           <ErrorText>{error}</ErrorText>
         </section>
       </main>
@@ -532,7 +532,7 @@ function OnlineGame({ uid, name, onExit }: { uid: string; name: string; onExit: 
           <p className="hg-note" style={{ textAlign: 'center' }}>Press and hold. Keep it to yourself.</p>
           <HoldToReveal
             hidden={<button className="hg-btn hg-wide" style={{ marginTop: 20 }}>Hold to reveal</button>}
-            revealed={secret ? <RevealCard word={secret.role === 'crew' ? secret.word : undefined} role={secret.role === 'imposter' ? 'You are the IMPOSTER' : undefined} /> : <p className="hg-note">Dealing…</p>}
+            revealed={secret ? <RevealCard word={secret.role === 'crew' ? secret.word : undefined} role={secret.role === 'imposter' ? 'You are the IMPOSTER' : undefined} /> : <p className="hg-note">Dealing...</p>}
           />
           {secret?.role === 'imposter' && secret.hint && <p className="hg-note" style={{ textAlign: 'center', marginTop: 10 }}>Hint: {secret.hint}</p>}
           <Button ghost wide style={{ marginTop: 22 }} onClick={() => setReady(code, uid, !room.players[uid]?.ready)}>
@@ -627,7 +627,7 @@ function OnlineGame({ uid, name, onExit }: { uid: string; name: string; onExit: 
                   <button className="mini" onClick={() => sendGuessFor(res!.accused)}>Guess</button>
                 </div>
               </>
-            ) : <p className="hg-lead" style={{ margin: '10px auto' }}>{res?.accusedName ?? 'The imposter'} gets one guess at the word to steal the win…</p>}
+            ) : <p className="hg-lead" style={{ margin: '10px auto' }}>{res?.accusedName ?? 'The imposter'} gets one guess at the word to steal the win...</p>}
             {isHost && !isAccused && (
               <Button ghost wide style={{ marginTop: 12 }} onClick={() => saveImposterSettings(code, uid, { ...room.settings, guess: { text: '', by: 'host-pass' } })}>They pass</Button>
             )}
@@ -655,7 +655,7 @@ function OnlineGame({ uid, name, onExit }: { uid: string; name: string; onExit: 
   const detail = res?.outcome === 'crew'
     ? `${res?.accusedName ?? ''} was caught${res?.guess ? ` and guessed "${res.guess}", wrong.` : '.'}`
     : res?.outcome === 'steal'
-      ? `${res?.accusedName ?? ''} was caught… then guessed the word. Brutal.`
+      ? `${res?.accusedName ?? ''} was caught... then guessed the word. Brutal.`
       : `${res?.accusedName ?? ''} was innocent.`;
   return (
     <main>
@@ -674,7 +674,7 @@ function OnlineGame({ uid, name, onExit }: { uid: string; name: string; onExit: 
               <Button wide onClick={hostStartRound}>Next round</Button>
               <Button ghost wide style={{ marginTop: 10 }} onClick={() => setRoomPhase(code, uid, 'lobby')}>Back to lobby</Button>
             </>
-          ) : <p className="hg-note">Waiting for the host…</p>}
+          ) : <p className="hg-note">Waiting for the host...</p>}
           <button className="leavebtn" style={{ marginTop: 18 }} onClick={leave}>Leave room</button>
         </div>
       </Card>

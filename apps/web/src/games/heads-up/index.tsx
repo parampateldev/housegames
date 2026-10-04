@@ -131,7 +131,7 @@ function App({ uid, name }: { uid: string; name: string }) {
     );
   }
 
-  if (!room) return <main>{Header}<div className="center">Joining {code}…</div><ErrorText>{error}</ErrorText></main>;
+  if (!room) return <main>{Header}<div className="center">Joining {code}...</div><ErrorText>{error}</ErrorText></main>;
 
   if (!room.players?.[uid]) {
     return (
@@ -198,7 +198,7 @@ function App({ uid, name }: { uid: string; name: string }) {
                 <Button ghost onClick={() => tap(false)}>✗ Pass</Button>
               </div>
             </div>
-          ) : <div className="word-card">{word ?? '…'}</div>}
+          ) : <div className="word-card">{word ?? '...'}</div>}
           {s?.roundEndsAt && <Timer endsAt={s.roundEndsAt} onDone={onTimerDone} />}
           <p className="hg-note">Correct so far: {s?.correctCount ?? 0}</p>
           <ErrorText>{error}</ErrorText>

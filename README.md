@@ -10,7 +10,7 @@ Sign in with Google or email to host a room (so it can be saved to your account)
 
 ## Architecture
 
-See the [architecture proposal](https://claude.ai/artifact/8UqqgLjjqwKM7TCawNf9pn) for the full design rationale. Summary:
+Summary:
 
 - **One Vite + React + TypeScript app** (`apps/web`) hosts all 12 games behind a shared nav, auth state, and design system, rather than 12 independent builds.
 - **Firebase Realtime Database**, namespaced per game (`empire/`, `mafia/`, `codenames/`, ...), with **Firebase Auth** (Google, email/password, anonymous).
@@ -19,7 +19,7 @@ See the [architecture proposal](https://claude.ai/artifact/8UqqgLjjqwKM7TCawNf9p
 - **Two shared engines** instead of twelve bespoke implementations:
   - `packages/shared-firebase`, the "secret-reveal" primitive (per-uid gated secrets, host-only aggregate reveals, generic room CRUD with deterministic host migration) used by nearly every game.
   - `packages/game-engines/elimination-engine`, the night-action resolver (role assignment, doctor-save-before-kill ordering, day-vote tally, win check) shared by Mafia and Werewolf.
-- **Security rules are generated, not hand-copied** (`scripts/build-rules.mjs` → `database.rules.json`), one template applied identically to all 12 namespaces, so there's no per-game copy-paste drift to typo.
+- **Security rules are generated, not hand-copied** (`scripts/build-rules.mjs`  to  `database.rules.json`), one template applied identically to all 12 namespaces, so there's no per-game copy-paste drift to typo.
 - **`packages/shared-ui`** also has the cross-game chrome: `RoomHeader` (QR/share/dashboard link), `PlayerManager` (host controls), `HelpModal` (per-game rules).
 
 ## Repo layout
@@ -56,7 +56,7 @@ All three run in CI (`.github/workflows/deploy.yml`) before every deploy.
 
 ## Deployment
 
-Push to `main` → GitHub Actions runs the full test suite, builds, and deploys to GitHub Pages. Firebase config is injected at build time from repo secrets (`VITE_FIREBASE_*`); nothing sensitive is checked in (the Firebase web API key is safe to expose, access control is enforced entirely by the security rules, not by hiding the key).
+Push to `main`  to  GitHub Actions runs the full test suite, builds, and deploys to GitHub Pages. Firebase config is injected at build time from repo secrets (`VITE_FIREBASE_*`); nothing sensitive is checked in (the Firebase web API key is safe to expose, access control is enforced entirely by the security rules, not by hiding the key).
 
 ## Adding a 13th game
 

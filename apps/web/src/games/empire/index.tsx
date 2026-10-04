@@ -275,7 +275,7 @@ function EmpireApp({ uid, name }: { uid: string; name: string }) {
     return (
       <main>
         {Header}
-        <div className="loader">Joining {code}…</div>
+        <div className="loader">Joining {code}...</div>
         <ErrorText>{error}</ErrorText>
         {Help}
       </main>
@@ -316,7 +316,7 @@ function EmpireApp({ uid, name }: { uid: string; name: string }) {
         </main>
       );
     }
-    if (isHost) return <main>{Header}<div className="loader">Preparing the list…</div><ErrorText>{error}</ErrorText>{Help}</main>;
+    if (isHost) return <main>{Header}<div className="loader">Preparing the list...</div><ErrorText>{error}</ErrorText>{Help}</main>;
     return (
       <main>
         {Header}
@@ -384,7 +384,7 @@ function EmpireApp({ uid, name }: { uid: string; name: string }) {
               <div className="player-row" key={p.id}>
                 <i>{p.name[0]}</i>
                 <span>{p.name}{p.id === room.hostId && <small> Host</small>}</span>
-                <em className={p.submitted ? 'ready' : ''}>{p.submitted ? 'Ready' : 'Choosing…'}</em>
+                <em className={p.submitted ? 'ready' : ''}>{p.submitted ? 'Ready' : 'Choosing...'}</em>
                 {isHost && p.id !== room.hostId && <button className="remove" onClick={() => kick(p.id)}>Remove</button>}
               </div>
             ))}

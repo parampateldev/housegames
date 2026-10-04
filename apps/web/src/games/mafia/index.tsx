@@ -223,7 +223,7 @@ function MafiaApp({ uid, name }: { uid: string; name: string }) {
     );
   }
 
-  if (!room) return <main>{Header}<div className="loader">Joining {code}…</div><ErrorText>{error}</ErrorText></main>;
+  if (!room) return <main>{Header}<div className="loader">Joining {code}...</div><ErrorText>{error}</ErrorText></main>;
 
   if (!room.players?.[uid]) {
     return (
@@ -305,7 +305,7 @@ function MafiaApp({ uid, name }: { uid: string; name: string }) {
         <div className="room-wrap">
           <div className="leave-row"><Button onClick={leave}>Leave room</Button></div>
           <div className="night-card">
-            <span className="role-badge">{mySecret?.role ?? '…'}</span>
+            <span className="role-badge">{mySecret?.role ?? '...'}</span>
             <h2>Night {room.settings.round}</h2>
             {mySecret?.team === 'evil' && mySecret?.teammates && <p className="teammates">With you: {mySecret.teammates.join(', ') || 'no one else'}</p>}
             {!alive && <p className="hg-note" style={{ color: '#fff' }}>You've been eliminated, watch how it plays out.</p>}

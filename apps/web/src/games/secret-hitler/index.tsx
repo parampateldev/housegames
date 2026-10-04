@@ -163,7 +163,7 @@ function SHApp({ uid, name }: { uid: string; name: string }) {
     );
   }
 
-  if (!room) return <main>{Header}<div className="loader">Joining {code}…</div><ErrorText>{error}</ErrorText></main>;
+  if (!room) return <main>{Header}<div className="loader">Joining {code}...</div><ErrorText>{error}</ErrorText></main>;
 
   if (!room.players?.[uid]) {
     return (
@@ -209,7 +209,7 @@ function SHApp({ uid, name }: { uid: string; name: string }) {
             <Button wide disabled={players.length < 5 || players.length > 10} onClick={() => startGame(code, uid).catch(fail)} style={{ marginTop: 18 }}>
               {players.length < 5 ? `Need ${5 - players.length} more` : players.length > 10 ? 'Too many players (max 10)' : 'Start game'}
             </Button>
-          ) : <p className="hg-note">Waiting for the host to start ({players.length}/5-10 players)…</p>}
+          ) : <p className="hg-note">Waiting for the host to start ({players.length}/5-10 players)...</p>}
           <ErrorText>{error}</ErrorText>
         </Card>
       </main>
@@ -258,7 +258,7 @@ function SHApp({ uid, name }: { uid: string; name: string }) {
             <Card>
               <h3>President: nominate a chancellor</h3>
               <select value={nomineePick} onChange={(e) => setNomineePick(e.target.value)} style={{ width: '100%', padding: 12, margin: '10px 0' }}>
-                <option value="">Choose…</option>
+                <option value="">Choose...</option>
                 {players.filter((p) => p.id !== uid && p.alive).map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
               </select>
               <Button wide disabled={!nomineePick} onClick={() => submitChoice(code, uid, nomineePick).catch(fail)}>Nominate</Button>
@@ -267,17 +267,17 @@ function SHApp({ uid, name }: { uid: string; name: string }) {
             <Card>
               <h3>Nominate for {president?.name} (no phone)</h3>
               <select value={nomineePick} onChange={(e) => setNomineePick(e.target.value)} style={{ width: '100%', padding: 12, margin: '10px 0' }}>
-                <option value="">Choose…</option>
+                <option value="">Choose...</option>
                 {players.filter((p) => p.id !== room.settings.presidentId && p.alive).map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
               </select>
               <Button wide disabled={!nomineePick} onClick={() => submitChoice(code, room.settings.presidentId, nomineePick).catch(fail)}>Nominate</Button>
             </Card>
-          ) : <p className="hg-note">{president?.name} is nominating a chancellor…</p>
+          ) : <p className="hg-note">{president?.name} is nominating a chancellor...</p>
         )}
 
         {room.phase === 'vote' && (
           <>
-            {votes[uid] ? <p className="hg-note">Vote cast. Waiting on others…</p> : (
+            {votes[uid] ? <p className="hg-note">Vote cast. Waiting on others...</p> : (
               <Card>
                 <h3>Vote: {president?.name} &amp; {chancellorNominee?.name}</h3>
                 <div className="actions">
@@ -313,7 +313,7 @@ function SHApp({ uid, name }: { uid: string; name: string }) {
                 {localDraw.cards.map((c, i) => <button key={i} className={'policy-card ' + c} onClick={() => submitChoice(code, actingLocalUid!, String(i)).catch(fail)}>{c}</button>)}
               </div>
             </Card>
-          ) : <p className="hg-note">{president?.name} is examining policies…</p>
+          ) : <p className="hg-note">{president?.name} is examining policies...</p>
         )}
 
         {room.phase === 'legislativeChancellor' && (
@@ -331,7 +331,7 @@ function SHApp({ uid, name }: { uid: string; name: string }) {
                 {localDraw.cards.map((c, i) => <button key={i} className={'policy-card ' + c} onClick={() => submitChoice(code, actingLocalUid!, String(i)).catch(fail)}>{c}</button>)}
               </div>
             </Card>
-          ) : <p className="hg-note">{chancellor?.name} is enacting a policy…</p>
+          ) : <p className="hg-note">{chancellor?.name} is enacting a policy...</p>
         )}
 
         <details style={{ marginTop: 20 }}>
